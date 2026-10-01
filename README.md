@@ -59,24 +59,32 @@
 
 ### `search_listings`
 
-- **What it does:**
-- **Inputs:** <!-- name and type each: `max_price` (float), not "a price" -->
-- **Returns:**
-- **When it has nothing:**
+- **What it does:** Searches the local listings by description keywords, with optional size and price filters. It does not call the model. Matching and ranking follow the rules below.
+- **Inputs:** `description` (str), `size` (str or None, default None), and `max_price` (float or None, default None). None skips that filter; the price limit is inclusive.
+- **Returns:** A list of matching listing dictionaries, highest keyword score first, up to `config.SEARCH_RESULT_LIMIT` results (currently 10). Each dictionary contains `id` (str), `title` (str), `description` (str), `category` (str), `style_tags` (list of strings), `size` (str), `condition` (str), `price` (float), `colors` (list of strings), `brand` (str or None), and `platform` (str).
+- **When it has nothing:** Returns `[]` when no listing passes the filters and matches at least one description keyword. An empty or whitespace-only description also returns `[]`.
+
+**Search matching rules:**
+
+- Use the instructor's `_keywords` helper on the description and on the listing's `title`, `description`, and `style_tags`. It lowercases text, extracts sequences of letters a–z, digits, and apostrophes, and removes single-character tokens and these stopwords: `a`, `an`, `and`, `the`, `for`, `with`, `under`, `over`, `in`, `of`. Score each listing by the number of distinct shared keywords. A keyword counts once even if it appears in several fields. Require a score above zero, and keep the original file order when scores tie. This allows partial keyword matches; a description with no remaining keywords returns `[]`.
+- Keep only listings whose price is at or below `max_price`, when provided.
+- Use the instructor's `_size_matches` helper. None or an empty string skips size filtering. Otherwise, remove parenthetical fit notes, split both sizes on `/`, trim surrounding whitespace, and compare the resulting labels without regard to capitalization. Any shared label is a match: `M` matches `S/M`, and a request for `S/M` can match either `S` or `M`. `L` does not match `XL`.
+- A listing with a size label starting with `ONE SIZE` passes any requested size filter, including adjustable and oversized variants. This is the helper's matching rule, not a guarantee of physical fit.
+- Other numeric size labels must match exactly after that normalization. `8` does not match `US 8`, and `W30` does not match `W30 L30`. The helper does not convert shoe-size formats or split waist and length measurements.
 
 ### `suggest_outfit`
 
-- **What it does:**
-- **Inputs:**
-- **Returns:**
-- **When it has nothing:**
+- **What it does:** Calls the model through `generate()` to suggest one or two outfits combining the selected listing with pieces from the user's wardrobe.
+- **Inputs:** `new_item` (dict containing a listing returned by `search_listings`) and `wardrobe` (dict with an `items` key containing a list of wardrobe item dictionaries). Each wardrobe item has `id`, `name`, `category`, `colors`, `style_tags`, and `notes`.
+- **Returns:** A non-empty string describing one or two outfit ideas, naming the selected item and the wardrobe pieces used, with an explanation of how to style them. It must not claim the user owns items absent from the supplied wardrobe.
+- **When it has nothing:** When `wardrobe["items"]` is empty, returns a non-empty string of general styling advice for the selected item. Suggested pieces are described as options, not items the user already owns. A valid selected listing is required; the loop stops before calling this tool if search found nothing.
 
 ### `create_fit_card`
 
-- **What it does:**
-- **Inputs:**
-- **Returns:**
-- **When it has nothing:**
+- **What it does:** Calls the model through `generate()` to turn an outfit suggestion and a selected listing into a short caption someone could post.
+- **Inputs:** `outfit` (str returned by `suggest_outfit`) and `new_item` (dict containing the same selected listing).
+- **Returns:** A string containing a two-to-four-sentence caption. It mentions the selected item, its price, and its platform once each, and describes the outfit's style using the supplied information. It does not invent missing details such as a brand when `brand` is None.
+- **When it has nothing:** If `outfit` is empty or contains only whitespace, returns `"I couldn't create a fit card because no outfit suggestion was provided."` without calling the model. A valid selected listing is required.
 
 ---
 
@@ -93,7 +101,9 @@
      The grader checks your code against what you claim here, so the file and
      function have to be real. -->
 
-**Branch rule:**
+
+
+**Branch rule:** If `search_listings` returns an empty list, put a message in `session["error"]` suggesting the user change the description, size, or budget, and stop without calling `suggest_outfit` or `create_fit_card`. Otherwise, store the first result in `session["selected_item"]` and call `suggest_outfit` using that saved item and `session["wardrobe"]`.
 
 **Where it lives:** `agent.py::run_agent`
 
