@@ -59,18 +59,12 @@
 
 ### `search_listings`
 
-- **What it does:** Searches the local listings by description keywords, with optional size and price filters. It does not call the model. Matching and ranking follow the rules below.
+- **What it does:** Searches the local listings by description keywords, with optional size and price filters. It does not call the model.
 - **Inputs:** `description` (str), `size` (str or None, default None), and `max_price` (float or None, default None). None skips that filter; the price limit is inclusive.
 - **Returns:** A list of matching listing dictionaries, highest keyword score first, up to `config.SEARCH_RESULT_LIMIT` results (currently 10). Each dictionary contains `id` (str), `title` (str), `description` (str), `category` (str), `style_tags` (list of strings), `size` (str), `condition` (str), `price` (float), `colors` (list of strings), `brand` (str or None), and `platform` (str).
 - **When it has nothing:** Returns `[]` when no listing passes the filters and matches at least one description keyword. An empty or whitespace-only description also returns `[]`.
 
-**Search matching rules:**
-
-- Use the instructor's `_keywords` helper on the description and on the listing's `title`, `description`, and `style_tags`. It lowercases text, extracts sequences of letters a–z, digits, and apostrophes, and removes single-character tokens and these stopwords: `a`, `an`, `and`, `the`, `for`, `with`, `under`, `over`, `in`, `of`. Score each listing by the number of distinct shared keywords. A keyword counts once even if it appears in several fields. Require a score above zero, and keep the original file order when scores tie. This allows partial keyword matches; a description with no remaining keywords returns `[]`.
-- Keep only listings whose price is at or below `max_price`, when provided.
-- Use the instructor's `_size_matches` helper. None or an empty string skips size filtering. Otherwise, remove parenthetical fit notes, split both sizes on `/`, trim surrounding whitespace, and compare the resulting labels without regard to capitalization. Any shared label is a match: `M` matches `S/M`, and a request for `S/M` can match either `S` or `M`. `L` does not match `XL`.
-- A listing with a size label starting with `ONE SIZE` passes any requested size filter, including adjustable and oversized variants. This is the helper's matching rule, not a guarantee of physical fit.
-- Other numeric size labels must match exactly after that normalization. `8` does not match `US 8`, and `W30` does not match `W30 L30`. The helper does not convert shoe-size formats or split waist and length measurements.
+Search uses keyword overlap, an inclusive price limit, and the `_size_matches` helper.
 
 ### `suggest_outfit`
 
@@ -129,19 +123,39 @@ $ python app.py ask '...'
 
 **The three tools, tested one at a time**
 
-```
-$ python -c "from tools import search_listings; print(search_listings('graphic tee', max_price=30))"
-
-```
-
-```
-$ python -c "from tools import suggest_outfit; ..."
-
+```text
+$ .venv/bin/python -c 'from tools import search_listings; print([(x["id"], x["title"], x["size"], x["price"]) for x in search_listings("graphic tee", max_price=30)])'
+[('lst_002', 'Y2K Baby Tee — Butterfly Print', 'S/M', 18.0), ('lst_006', 'Graphic Tee — 2003 Tour Bootleg Style', 'L', 24.0), ('lst_017', 'Mesh Long-Sleeve Top — Black', 'S/M', 15.0), ('lst_033', 'Vintage Band Tee — Faded Grey', 'L', 19.0), ('lst_011', 'Low-Rise Cargo Pants — Khaki', 'W29', 27.0), ('lst_015', 'Vintage Graphic Hoodie — Faded Black', 'L', 26.0)]
 ```
 
-```
-$ python -c "from tools import create_fit_card; ..."
+```text
+$ .venv/bin/python -c 'from tools import suggest_outfit; from utils.data_loader import get_example_wardrobe, get_empty_wardrobe, load_listings; item = load_listings()[0]; print("EXAMPLE WARDROBE:"); print(suggest_outfit(item, get_example_wardrobe())); print("EMPTY WARDROBE:"); print(suggest_outfit(item, get_empty_wardrobe()))'
+EXAMPLE WARDROBE:
+Here are two outfits featuring your new Vintage Levi's 501 Jeans:
 
+**Outfit 1: Casual Streetwear**
+*   **Top:** White ribbed tank top
+*   **Outerwear:** Vintage black denim jacket
+*   **Shoes:** Chunky white sneakers
+*   *Why it works:* The fitted white tank balances the straight-leg cut of the Levi's, while the slightly cropped black jacket and chunky sneakers lean into the vintage streetwear vibe.
+
+**Outfit 2: Cozy & Relaxed**
+*   **Top:** Oversized grey crewneck sweatshirt
+*   **Shoes:** Black combat boots
+*   **Accessories:** Brown leather belt, Black crossbody bag
+*   *Why it works:* Tucking the front of the oversized crewneck into the 501s creates an effortless, balanced silhouette. The combat boots add an edge that complements the faded denim wash. *(Consider adding a simple silver chain necklace to complete the look).*
+EMPTY WARDROBE:
+Here are two ways to style the Vintage Levi's 501 Jeans:
+
+1. **Casual Streetwear:** Pair the jeans with a tucked-in graphic t-shirt, a leather belt, and classic white leather sneakers. Add a black leather jacket for an extra layer.
+2. **Classic Smart-Casual:** Combine the medium wash denim with a crisp, oversized white button-down shirt and brown leather loafers. Accessorize with a minimalist gold watch.
+```
+
+```text
+$ AI201_CACHE=0 .venv/bin/python -c 'from tools import create_fit_card; from utils.data_loader import load_listings; item = load_listings()[0]; outfit = "Pair these jeans with a white ribbed tank, black denim jacket, and chunky white sneakers."; [print(f"RUN {i}: {create_fit_card(outfit, item)}") for i in range(1, 4)]'
+RUN 1: Scored these vintage Levi's 501 jeans for just $38.00 on depop. Styled them with a white ribbed tank, black denim jacket, and chunky white sneakers for the ultimate classic streetwear look.
+RUN 2: Scored these classic Levi's 501 Jeans for just $38.0 on depop! I styled them with a white ribbed tank, black denim jacket, and chunky white sneakers for the ultimate vintage streetwear look.
+RUN 3: Scored these classic Levi's 501 Jeans for just $38.0 on depop! Paired with a white ribbed tank, black denim jacket, and chunky white sneakers, the look gives off an effortless vintage streetwear vibe.
 ```
 
 ---
