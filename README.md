@@ -101,9 +101,9 @@ Search uses keyword overlap, an inclusive price limit, and the `_size_matches` h
 
 **Where it lives:** `agent.py::run_agent`
 
-**How the query is parsed:** <!-- regex, string splitting, or asking the model — say which -->
+**How the query is parsed:** `agent.py::parse_query` uses regular expressions. It removes a dollar amount such as `$30` and stores it as `max_price=30.0`, reads a size such as `M`, `S/M`, `W30 L30`, or `US 8`, and keeps the remaining words as the description. A bare number after `size` (for example, `size 8`) is treated as a US shoe size. Prices written as words, such as “thirty dollars,” are not understood.
 
-**What moves through the session:** <!-- which fields, in what order -->
+**What moves through the session:** `agent.py::new_session` stores the query and wardrobe. `run_agent` then saves the parsed search inputs in `parsed` and the matching listings in `search_results`. If there is a match, it puts the first result in `selected_item`, passes that saved item and `wardrobe` to `suggest_outfit`, saves its text in `outfit_suggestion`, then passes the saved suggestion and item to `create_fit_card` and saves the caption in `fit_card`. If search returns `[]`, it saves a useful message in `error` and leaves the later fields as `None`.
 
 ---
 
@@ -116,9 +116,22 @@ Search uses keyword overlap, an inclusive price limit, and the `_size_matches` h
 
 **One full query**
 
-```
-$ python app.py ask '...'
+```text
+$ .venv/bin/python app.py ask '90s track jacket in size M'
 
+  Found:    90s Track Jacket — Navy/White Stripe — $45.0 on poshmark
+
+  Outfit:   **Outfit 1: Casual Streetwear**
+*   **Pieces:** 90s Track Jacket, White ribbed tank top (w_003), Baggy straight-leg jeans (w_001), Chunky white sneakers (w_007).
+*   **Why it works:** The fitted white tank balances the relaxed, baggy fit of the dark wash jeans, while the white stripes on the jacket tie into the sneakers for a cohesive, sporty 90s look. *(Suggested addition: vintage baseball cap).*
+
+**Outfit 2: High-Low Contrast**
+*   **Pieces:** 90s Track Jacket, White ribbed tank top (w_003), Wide-leg khaki trousers (w_002), Chunky white sneakers (w_007).
+*   **Why it works:** Pairing the athletic track jacket with tailored khaki trousers creates a stylish high-low mix, and the white tank and sneakers keep the palette crisp and coordinated. *(Suggested addition: minimalist silver hoops).*
+
+  Fit card: Scored this authentic Champion 90s track jacket on Poshmark for $45.00! I styled it into a casual streetwear fit with a ribbed tank, baggy jeans, and chunky sneakers. It gives off a sporty, vintage vibe that is so easy to layer.
+
+2 model calls this session, 1147 prompt + 273 output tokens
 ```
 
 **The three tools, tested one at a time**
