@@ -41,7 +41,7 @@
 
 <!-- Three or four sentences: what a user asks for, and what they get back. -->
 
-
+FitFindr helps a user search a local set of secondhand clothing listings using a description, size, and maximum price. When it finds a match, it selects the highest-ranked listing and suggests outfits using clothes from the user's wardrobe. It then creates a short fit-card caption that includes the selected item, price, platform, and overall style. If no listing matches, it stops before the model tools and tells the user which parts of the search they could change.
 
 ---
 
@@ -184,15 +184,15 @@ RUN 3: Scored these classic Levi's 501 Jeans for just $38.0 on depop! Paired wit
 
 **Moment 1**
 
-- *What I asked for:*
-- *What came back:*
-- *What I changed:*
+- *What I asked for:* I asked Codex to explain how a tool specification should describe inputs, outputs, and empty cases, and then used it to review my Tool Inventory for gaps.
+- *What came back:* The review pointed out that saying a tool “returns a list” was not specific enough. It also explained why `search_listings` should return `[]` when nothing matches, since the planning loop uses that value to choose whether to continue or stop.
+- *What I changed:* I documented the input types and exact return values for all three tools. I also made the empty cases explicit and learned how a tool's return value becomes part of the control flow of an agent.
 
 **Moment 2**
 
-- *What I asked for:*
-- *What came back:*
-- *What I changed:*
+- *What I asked for:* I asked Codex to help me check whether my planning loop was actually carrying state between tools and stopping correctly after an empty search.
+- *What came back:* It suggested checking the item received by `suggest_outfit` against `session["selected_item"]`, and replacing the later tools with functions that raise an error during the empty-search test. Those checks also revealed that the query parser ignored `size 8` and that the loop was trying the unfinished MCP path from Unit 4.
+- *What I changed:* I updated the size parser so `size 8` becomes `US 8`, kept the Unit 3 search call local, and ran both the successful and empty-search paths myself. This helped me understand how session state makes each intermediate value visible and how a branch can be tested beyond checking only the final response.
 
 <!-- ═══════════════════════ UNIT 4 — THE TEST ═══════════════════════
 
