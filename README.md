@@ -203,28 +203,79 @@ RUN 3: Scored these classic Levi's 501 Jeans for just $38.0 on depop! Paired wit
 
 ## Run Log — Before
 
-<!-- Five criteria, five tries each, in this exact format.
+Baseline command: `python run_eval.py --label before`. The run made 50 model calls with caching off (26,962 prompt tokens and 6,532 output tokens). There were 25 criterion trials containing 35 agent requests, because each trial for criterion 3 contains three requests.
 
-     Five, because your criteria are written out of five. Mark each try PASS
-     or FAIL, count the passes, and read that count against your target — a
-     row targeting 4 of 5 with three PASS cells is MISSED (3/5).
-
-     `python run_eval.py --label before` runs everything and writes the table
-     into results/. Paste it here and fill in the verdicts. -->
+The scenarios were set before this run. Criterion 1 repeats the tee query and criterion 2 repeats the impossible query. Criterion 3 repeats tee → empty → jacket in the same process. Criterion 4 uses five different listings. Criterion 5 uses two full wardrobes, two containing only `w_001`, and one empty wardrobe.
 
 | Criterion | Target | Try 1 | Try 2 | Try 3 | Try 4 | Try 5 | Verdict |
 |---|---|---|---|---|---|---|---|
-| 1.  |  |  |  |  |  |  |  |
-| 2.  |  |  |  |  |  |  |  |
-| 3.  |  |  |  |  |  |  |  |
-| 4.  |  |  |  |  |  |  |  |
-| 5.  |  |  |  |  |  |  |  |
+| 1. Matching query completes all three tools | 4 of 5 | PASS | PASS | PASS | PASS | PASS | MET (5/5) |
+| 2. Impossible query stops with guidance | 5 of 5 | PASS | PASS | PASS | PASS | PASS | MET (5/5) |
+| 3. Each request keeps its own selected item | 5 of 5 | PASS | PASS | PASS | PASS | PASS | MET (5/5) |
+| 4. Fit card reports listing details correctly | 4 of 5 | PASS | PASS | PASS | PASS | PASS | MET (5/5) |
+| 5. Outfit advice does not invent ownership | 5 of 5 | PASS | PASS | PASS | PASS | PASS | MET (5/5) |
 
-**Real output from one try**, pasted as text, naming the file and function
-that produced it:
+These scores come from reviewing the recorded evidence against `criteria.md`, not from a phrase scorer. Complete sessions, actual tool inputs and returns, and traces are saved in [the generated report](results/run_2026-10-08_004633_before.md) and its [JSON evidence](results/run_2026-10-08_004633_before.json). The generated report leaves scoring cells pending by design; the completed review is the table above. [The assessment notes](results/unit4_before_assessment.md) explain what was checked for each try.
 
+**Real output from one try**
+
+**Criterion 1, try 1:** `agent.py::run_agent`, printed by `trace.py::step` and captured by `run_eval.py::run_once`. All three tools appear:
+
+```text
+[1] parse_query
+      in:  vintage graphic tee under $30
+      out: {'description': 'vintage graphic tee', 'size': None, 'max_price': 30.0}
+[2] search_listings (via MCP)
+      in:  {'description': 'vintage graphic tee', 'size': None, 'max_price': 30.0}
+      out: 10 items: Y2K Baby Tee — Butterfly Print, Graphic Tee — 2003 Tour Bootleg Style, Vintage Band Tee — Faded Grey … +7 more
+[3] branch
+      →    Search found matches: select the first result and continue.
+[4] select_item
+      out: lst_002: Y2K Baby Tee — Butterfly Print ($18.0, depop)
+[5] suggest_outfit
+      in:  {'new_item_id': 'lst_002', 'wardrobe_ids': ['w_001', 'w_002', 'w_003', 'w_004', 'w_005', 'w_006', 'w_007', 'w_008', 'w_009', 'w_010']}
+      out: **Outfit 1: Y2K Streetwear** *   **Top:** Y2K Baby Tee — Butterfly Print *   **Bottoms:** Baggy straight-leg jeans, dark wash (w_001) *   **Shoes:** Chunky whit…
+[6] create_fit_card
+      in:  {'new_item_id': 'lst_002', 'outfit': '**Outfit 1: Y2K Streetwear**\n*   **Top:** Y2K Baby Tee — Butterfly Print\n*   **Bottoms:** Baggy straight-leg jeans, dark…
+      out: I scored this Y2K Baby Tee — Butterfly Print on depop for just $18.0! I styled it with baggy dark-wash jeans, chunky white sneakers, and a black crossbody bag f…
 ```
 
+**Criterion 2, try 1:** `agent.py::_nothing_found_message`, returned in the session by `agent.py::run_agent`. The recorded calls contain only the MCP search:
+
+```text
+Nothing in the listings matched description 'designer ballgown', size XXS, under $5.
+Things to change: try broader words — 'jacket' finds more than 'cropped corduroy jacket'; drop the size, or try a neighbouring one; raise the price ceiling above $5.
+```
+
+**Criterion 3, try 1:** This is the empty request's actual session-field excerpt captured by `run_eval.py::run_once`:
+
+```json
+{
+  "selected_item": null,
+  "outfit_suggestion": null,
+  "fit_card": null
+}
+```
+
+The complete trial selected `lst_002`, then nothing, then `lst_004`. The full captured item dictionaries passed to both later tools matched each request's selected item and first search result. This comparison passed in all five sequences; the empty requests called neither later tool.
+
+**Criterion 4, try 1:** `tools.py::create_fit_card`. The selected listing was the Y2K Baby Tee — Butterfly Print, priced at $18 on depop:
+
+```text
+Scored this Y2K Baby Tee — Butterfly Print for just $18.00 on depop! Paired with baggy straight-leg jeans, chunky white sneakers, and a black crossbody bag, this look gives off a classic Y2K streetwear vibe.
+```
+
+**Criterion 5, try 3:** `tools.py::suggest_outfit`. The supplied wardrobe contained only the dark-wash baggy jeans (`w_001`). Sneakers are explicitly presented as an addition:
+
+```text
+**Outfit Idea:**
+
+*   **Top:** 90s Track Jacket — Navy/White Stripe
+*   **Bottoms:** Baggy straight-leg jeans, dark wash
+*   **Suggested Addition:** Crisp white sneakers
+
+**Why it works:**
+The dark wash baggy jeans match the streetwear and 90s vintage vibe of the track jacket. Pairing the navy-and-white jacket with the indigo denim creates a cohesive, relaxed, retro-athletic look. Adding white sneakers would tie in the white stripe detail on the sleeves.
 ```
 
 ---
