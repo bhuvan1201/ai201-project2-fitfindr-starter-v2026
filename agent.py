@@ -84,7 +84,7 @@ def parse_query(query: str) -> dict:
 
 # ── planning loop ─────────────────────────────────────────────────────────────
 
-def run_agent(query: str, wardrobe: dict) -> dict:
+def run_agent(query: str, wardrobe: dict, *, enable_trace: bool = False) -> dict:
     """
     Run the loop once and return the finished session.
 
@@ -93,6 +93,7 @@ def run_agent(query: str, wardrobe: dict) -> dict:
                   (e.g. "vintage graphic tee under $30, size M").
         wardrobe: a wardrobe dict — get_example_wardrobe() or
                   get_empty_wardrobe() from utils/data_loader.py.
+        enable_trace: print the steps and abbreviated inputs/outputs for this run.
 
     Returns:
         The session dict. **Check session["error"] first** — if it isn't None,
@@ -106,12 +107,14 @@ def run_agent(query: str, wardrobe: dict) -> dict:
         result, put it in session["selected_item"], and continue.
     """
     session = new_session(query, wardrobe)
+    trace.start_trace(enabled=enable_trace)
     steps = 0
 
     try:
         steps += 1
         trace.check_iterations(steps)
         session["parsed"] = parse_query(query)
+        trace.step("parse_query", inputs=query, returned=session["parsed"])
 
         steps += 1
         trace.check_iterations(steps)
@@ -124,26 +127,50 @@ def run_agent(query: str, wardrobe: dict) -> dict:
                 "max_price": parsed["max_price"],
             },
         )
+        trace.step(
+            "search_listings (via MCP)",
+            inputs=parsed,
+            returned=session["search_results"],
+        )
 
         if not session["search_results"]:
             session["error"] = _nothing_found_message(parsed)
+            trace.step("branch", note="Search returned []: stop before suggest_outfit and create_fit_card.")
             return session
+
+        trace.step("branch", note="Search found matches: select the first result and continue.")
 
         steps += 1
         trace.check_iterations(steps)
         session["selected_item"] = session["search_results"][0]
+        trace.step("select_item", returned=session["selected_item"])
 
         steps += 1
         trace.check_iterations(steps)
+        active_tool = "suggest_outfit"
+        tool_inputs = {
+            "new_item_id": session["selected_item"]["id"],
+            "wardrobe_ids": [item["id"] for item in session["wardrobe"].get("items", [])],
+        }
         session["outfit_suggestion"] = suggest_outfit(
             session["selected_item"], session["wardrobe"]
         )
+        trace.step(
+            active_tool, inputs=tool_inputs, returned=session["outfit_suggestion"],
+            note="Empty wardrobe: general styling advice." if not tool_inputs["wardrobe_ids"] else "",
+        )
 
         steps += 1
         trace.check_iterations(steps)
+        active_tool = "create_fit_card"
+        tool_inputs = {
+            "new_item_id": session["selected_item"]["id"],
+            "outfit": session["outfit_suggestion"],
+        }
         session["fit_card"] = create_fit_card(
             session["outfit_suggestion"], session["selected_item"]
         )
+        trace.step(active_tool, inputs=tool_inputs, returned=session["fit_card"])
 
     except ModelUnavailable as exc:
         stage = (
@@ -157,6 +184,7 @@ def run_agent(query: str, wardrobe: dict) -> dict:
             f"Check GEMINI_API_KEY in your .env and try again. "
             f"The service said: {exc}"
         )
+        trace.step(active_tool, inputs=tool_inputs, note=session["error"])
 
     return session
 

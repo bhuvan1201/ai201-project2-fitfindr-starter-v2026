@@ -29,13 +29,15 @@ import config
 
 _lines: list[str] = []
 _step_number = 0
+_enabled = False
 
 
-def start_trace() -> None:
+def start_trace(enabled: bool = True) -> None:
     """Clear the trace. Call this at the start of each run."""
-    global _step_number
+    global _step_number, _enabled
     _lines.clear()
     _step_number = 0
+    _enabled = enabled
 
 
 def step(name: str, inputs=None, returned=None, note: str = "") -> None:
@@ -50,6 +52,8 @@ def step(name: str, inputs=None, returned=None, note: str = "") -> None:
         note:     an optional word on why, e.g. "branch: empty, stopping".
     """
     global _step_number
+    if not _enabled:
+        return
     _step_number += 1
 
     line = f"[{_step_number}] {name}"
@@ -69,7 +73,7 @@ def get_trace() -> str:
     return "\n".join(_lines)
 
 
-def _short(value, limit: int = 110) -> str:
+def _short(value, limit: int = 160) -> str:
     """Keep the trace readable. A 40-item list of dicts is not readable."""
     if isinstance(value, list):
         if not value:
@@ -83,9 +87,7 @@ def _short(value, limit: int = 110) -> str:
 
     if isinstance(value, dict):
         if "title" in value:
-            return f"{value.get('title')} (${value.get('price')}, {value.get('platform')})"
-        keys = ", ".join(list(value)[:6])
-        return f"dict with keys: {keys}"
+            return f"{value.get('id')}: {value.get('title')} (${value.get('price')}, {value.get('platform')})"
 
     text = str(value).replace("\n", " ")
     return text if len(text) <= limit else text[:limit] + "…"

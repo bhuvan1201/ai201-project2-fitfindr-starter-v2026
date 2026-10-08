@@ -275,15 +275,58 @@ that produced it:
 
 **Happy path**
 
-```
+Command: `AI201_CACHE=0 python app.py ask '90s track jacket in size M' --trace`
 
+```text
+[1] parse_query
+      in:  90s track jacket in size M
+      out: {'description': '90s track jacket in', 'size': 'M', 'max_price': None}
+[2] search_listings (via MCP)
+      in:  {'description': '90s track jacket in', 'size': 'M', 'max_price': None}
+      out: 5 items: 90s Track Jacket — Navy/White Stripe, 90s Leather Bomber — Black, 90s Silk Slip Dress — Floral, Midi Length … +2 more
+[3] branch
+      →    Search found matches: select the first result and continue.
+[4] select_item
+      out: lst_004: 90s Track Jacket — Navy/White Stripe ($45.0, poshmark)
+[5] suggest_outfit
+      in:  {'new_item_id': 'lst_004', 'wardrobe_ids': ['w_001', 'w_002', 'w_003', 'w_004', 'w_005', 'w_006', 'w_007', 'w_008', 'w_009', 'w_010']}
+      out: Here are two outfit suggestions using your new track jacket:  **Outfit 1: Casual Streetwear** *   **Top:** White ribbed tank top *   **Bottoms:** Baggy straight…
+[6] create_fit_card
+      in:  {'new_item_id': 'lst_004', 'outfit': 'Here are two outfit suggestions using your new track jacket:\n\n**Outfit 1: Casual Streetwear**\n*   **Top:** White ribbed…
+      out: I scored this navy and white 90s Track Jacket for $45.0 on Poshmark! Paired with baggy jeans and chunky sneakers, it creates a cool and casual 90s athletic stre…
 ```
 
 **Empty search**
 
+Command: `python app.py ask 'designer ballgown size XXS under $5' --trace`
+
+```text
+[1] parse_query
+      in:  designer ballgown size XXS under $5
+      out: {'description': 'designer ballgown', 'size': 'XXS', 'max_price': 5.0}
+[2] search_listings (via MCP)
+      in:  {'description': 'designer ballgown', 'size': 'XXS', 'max_price': 5.0}
+      out: [] (empty)
+[3] branch
+      →    Search returned []: stop before suggest_outfit and create_fit_card.
+
+  Nothing in the listings matched description 'designer ballgown', size XXS, under $5.
+Things to change: try broader words — 'jacket' finds more than 'cropped corduroy jacket'; drop the size, or try a neighbouring one; raise the price ceiling above $5.
+
+0 model calls this session
 ```
 
-```
+The happy path has six steps, while the empty search stops after three. The selected listing ID, `lst_004`, also appears in the inputs to both later tools. The trace abbreviates long values and shows wardrobe item IDs; the full printed outfit and caption are in [the saved check output](results/unit4_milestone2_checks.md).
+
+**Failure checks — Milestone 2**
+
+| Case | What happened |
+|---|---|
+| Empty search | Stopped before either model tool, made zero model calls, and suggested broader words, a different size, or a higher budget. |
+| Empty wardrobe | Returned general styling suggestions with two model calls. The outfit advice suggested combinations without saying those items were already owned. |
+| Model unavailable | A temporary invalid API key caused the outfit call to fail. The agent kept the search results, stopped before the fit card, and displayed a message asking me to check the key and try again. |
+
+The model checks ran with caching disabled. The invalid key only applied to that command; the saved `.env` was unchanged. These checks exercise the existing handlers, while the code change adds the trace. The repeated criteria evaluation comes next.
 
 **On the MCP move:** <!-- what changed in your code, and whether anything
 behaved differently afterwards. If the rewire didn't work, say exactly where it
