@@ -290,7 +290,9 @@ behaved differently afterwards. If the rewire didn't work, say exactly where it
 broke — the error text and the last thing that worked. That earns the point in
 full. -->
 
+I registered `search_listings` in `mcp_server.py` with the same inputs as my Tool Inventory. In `agent.py::run_agent`, search now goes through `mcp_client.call_tool`, and its returned list is stored in `session["search_results"]`. The server calls the existing search function, so the filtering and ranking stay the same. The agent does not silently fall back to direct search.
 
+For Milestone 1, I compared the complete MCP and direct-search results for a matching query, a size-and-price-filtered query, and an impossible query. All three matched exactly, including list order. The full agent also returned an outfit and fit card through the MCP search path. That repeat run reused two cached model responses, so it checks the connection and data flow, not repeated model reliability. Commands and actual output are saved in [the MCP check](results/unit4_milestone1_mcp.md). The later evaluation will disable caching.
 
 ---
 
