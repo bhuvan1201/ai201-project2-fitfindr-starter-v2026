@@ -300,15 +300,31 @@ The dark wash baggy jeans match the streetwear and 90s vintage vibe of the track
 
 | # | Criterion | Target | Verdict | How I decided |
 |---|---|---|---|---|
-| 1 |  |  |  |  |
-| 2 |  |  |  |  |
-| 3 |  |  |  |  |
-| 4 |  |  |  |  |
-| 5 |  |  |  |  |
+| 1 | Matching query completes all three tools | 4 of 5 | MET (5/5) | All five runs recorded the MCP search, outfit call and fit-card call returning successfully, with a non-empty fit card. |
+| 2 | Impossible query stops with guidance | 5 of 5 | MET (5/5) | Every run returned an empty search, called neither later tool, and suggested changing the words, size or budget. |
+| 3 | Each request keeps its own selected item | 5 of 5 | MET (5/5) | In every tee → empty → jacket sequence, the full item dictionaries passed to both later tools matched that request's selected item and first result. The empty request kept all three result fields empty and called neither later tool. |
+| 4 | Fit card reports listing details correctly | 4 of 5 | MET (5/5) | All five captions identified the selected clothing item and gave the correct price and platform. Other item details mentioned in the captions agreed with the listings. |
+| 5 | Outfit advice does not invent ownership | 5 of 5 | MET (5/5) | Across the two full, two single-item and one empty wardrobe tests, the advice was non-empty. Owned pieces matched the supplied wardrobe; extra pieces were suggestions, not claims of ownership. |
 
 **Diagnoses**
 
+None of the five criteria was missed in this baseline, so there is no failed criterion to assign to a tool, branch, session or model output. The [assessment notes](results/unit4_before_assessment.md) contain the checks behind these verdicts. Different wording and price formats such as `$18.00` instead of `$18` are allowed by the original criteria, so those differences are not failures.
 
+The test coverage was narrow in some places. Criterion 1 repeated the same matching query, and criterion 2 repeated the same impossible query. Criterion 3 checked state carefully, but used the same three requests each time. Criteria 4 and 5 covered different listings and wardrobe sizes, but five successful tries still cannot show how the model will handle every input. The weakest standard is criterion 1: it checks whether the loop finishes, without requiring the selected item to satisfy the user's full request.
+
+There is a search-quality limitation visible in the saved evidence. For `90s track jacket size M`, criterion 3, try 1 returned:
+
+```text
+lst_004: 90s Track Jacket — Navy/White Stripe
+lst_022: 90s Leather Bomber — Black
+lst_013: 90s Silk Slip Dress — Floral, Midi Length
+lst_032: Shacket — Olive Canvas
+lst_034: Bucket Hat — Reversible, Brown Plaid
+```
+
+The place responsible is the search tool, `tools.py::search_listings`. After filtering size and price, it accepts any listing with at least one shared keyword from its title, description or style tags. It does not require the requested clothing type to match. That lets loosely related items into the results. The loop then selects the first result without another match check. In this recorded run the correct jacket was first, so this limitation did not cause a criterion to fail or a wrong selected item.
+
+For a future stronger test, I would tighten criterion 1 to: **For five queries with the expected clothing type, size and maximum price written down before testing, the selected listing must satisfy all three requirements and the agent must return a fit card in 5 of 5 tries.** This would check whether the completed run actually meets the request. I would require five because returning an item that breaks an explicit requirement is not a successful recommendation. This is a proposed future standard, not a revision used to rescore this baseline. The original criteria and targets stay as they were.
 
 ---
 
