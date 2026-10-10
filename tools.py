@@ -59,6 +59,21 @@ def _size_matches(wanted: str, listing_size: str) -> bool:
 
 # ── Tool 1: search_listings ───────────────────────────────────────────────────
 
+_CLOTHING_TYPES = {
+    "jacket": {"jacket", "jackets", "bomber", "bombers", "windbreaker",
+               "windbreakers", "blazer", "blazers", "shacket", "shackets"},
+    "tee": {"tee", "tees", "tshirt", "tshirts"},
+    "sneaker": {"sneaker", "sneakers", "trainer", "trainers"},
+}
+
+
+def _clothing_types(text: str) -> set[str]:
+    """Recognize three supported type families, including common aliases."""
+    normalized = re.sub(r"\bt[ -]shirts?\b", "tee", (text or "").lower())
+    words = _keywords(normalized)
+    return {kind for kind, aliases in _CLOTHING_TYPES.items() if words & aliases}
+
+
 def search_listings(
     description: str,
     size: str | None = None,
@@ -67,6 +82,9 @@ def search_listings(
     """
     Search the listings data for items matching a description, and optionally a
     size and a price ceiling.
+
+    Recognized jacket, tee and sneaker terms also filter by the listing title's
+    clothing family. Other queries keep the existing keyword matching behavior.
 
     This is the tool that doesn't call the model, which makes it the easiest one
     to test and the one to move onto MCP in unit 4.
@@ -113,9 +131,14 @@ def search_listings(
     wanted_keywords = _keywords(description)
     if not wanted_keywords:
         return []
+    wanted_types = _clothing_types(description)
 
     ranked = []
     for listing in load_listings():
+        # Titles identify the item itself; descriptions can mention other
+        # clothes as styling suggestions. Untyped searches retain old behavior.
+        if wanted_types and not wanted_types & _clothing_types(listing["title"]):
+            continue
         if max_price is not None and listing["price"] > max_price:
             continue
         if size is not None and not _size_matches(size, listing["size"]):

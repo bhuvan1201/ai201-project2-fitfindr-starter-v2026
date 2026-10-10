@@ -408,31 +408,50 @@ For Milestone 1, I compared the complete MCP and direct-search results for a mat
 
 ## The Improvement
 
-<!-- What you changed, why your diagnosis pointed at it, and the after-run in
-     the same table format. One change, measured properly.
+**What changed:** `tools.py::search_listings` now checks clothing type before ranking results. When the query names a jacket, tee or sneaker, the listing title must identify an item in that family. Jacket aliases include bombers, windbreakers, blazers and shackets. The existing size filter, price filter and keyword ranking remain in place. Queries without a recognized type keep their previous behavior.
 
-     `python run_eval.py --label after` -->
+**Which problem it was meant to fix:** The baseline jacket search returned a dress and a hat because they shared other keywords. The original five criteria all passed, but they did not measure this problem. A separate test was defined before the change, with five typed queries and a broad `vintage` query as a control. Each typed query had a fixed set of allowed item IDs and required valid results, so an empty result could not count as success.
 
-**What I changed:**
+The focused test ran through MCP before and after:
 
-**Which failure it was meant to fix:**
+```sh
+python tools/check_search_types.py --label before
+python tools/check_search_types.py --label after
+```
+
+| Focused check | Before | After |
+|---|---|---|
+| Queries returning only the right clothing family and all required items | 0/5 | 5/5 |
+| Wrong-type result occurrences across the five queries | 21 | 0 |
+| Previously returned valid items preserved | Reference results | All preserved |
+| Broad `vintage` query | Reference results | Same complete results and order |
+
+Actual returned IDs for `90s track jacket size M`, recorded by `tools/check_search_types.py::main` through MCP:
+
+```text
+before: ['lst_004', 'lst_022', 'lst_013', 'lst_032', 'lst_034']
+after:  ['lst_004', 'lst_022', 'lst_032']
+```
+
+The dress (`lst_013`) and hat (`lst_034`) are gone. The [focused comparison](results/search_type_comparison.md) links the complete before and after search output.
 
 ### Run Log — After
 
+Command: `python run_eval.py --label after`. The run used the same scenarios, wardrobes, targets and temperature as the baseline, with caching off. It completed 35 agent requests and 50 model calls (27,271 prompt tokens and 6,815 output tokens). The selected item for every request was also unchanged.
+
 | Criterion | Target | Try 1 | Try 2 | Try 3 | Try 4 | Try 5 | Verdict |
 |---|---|---|---|---|---|---|---|
-| 1.  |  |  |  |  |  |  |  |
-| 2.  |  |  |  |  |  |  |  |
-| 3.  |  |  |  |  |  |  |  |
-| 4.  |  |  |  |  |  |  |  |
-| 5.  |  |  |  |  |  |  |  |
+| 1. Matching query completes all three tools | 4 of 5 | PASS | PASS | PASS | PASS | PASS | MET (5/5) |
+| 2. Impossible query stops with guidance | 5 of 5 | PASS | PASS | PASS | PASS | PASS | MET (5/5) |
+| 3. Each request keeps its own selected item | 5 of 5 | PASS | PASS | PASS | PASS | PASS | MET (5/5) |
+| 4. Fit card reports listing details correctly | 4 of 5 | PASS | PASS | PASS | PASS | PASS | MET (5/5) |
+| 5. Outfit advice does not invent ownership | 5 of 5 | PASS | PASS | PASS | PASS | PASS | MET (5/5) |
 
-**Did it help, and how do I know:**
+The [full after report](results/run_2026-10-10_151811_after.md) and [JSON evidence](results/run_2026-10-10_151811_after.json) contain actual sessions, tool inputs, outputs and traces from `run_eval.py::run_once`. The generated report leaves scoring cells blank for review; the table here contains the reviewed verdicts. The [after assessment](results/unit4_after_assessment.md) records the checks for each criterion.
 
-<!-- If it made things worse, say that. Honestly reported, that earns full
-     credit and is more interesting than one that worked. -->
+**Did it help, and how do I know:** The focused search checks improved from 0/5 to 5/5, with wrong-type results dropping from 21 to zero and no previously returned valid items lost. The original criteria stayed at 5/5 each, so those results show no regression on the tested cases. They do not show an increase in the original pass rate, which was already perfect.
 
-
+This is still a limited filter. It recognizes three clothing families from words in titles, not every possible clothing name. A denim-jacket query can still return other kinds of jackets, and a sentence mentioning sneakers as a companion item could be misread as requesting sneakers. Type aliases only affect filtering; keyword scoring is still literal. These limits remain for later work rather than adding another change to this experiment.
 
 ---
 

@@ -1,0 +1,669 @@
+{
+  "purpose": "Supplementary search-type test; original five criteria unchanged.",
+  "producer": "tools/check_search_types.py::main via mcp_client.call_tool",
+  "cases": [
+    {
+      "query": "90s track jacket size M",
+      "allowed_ids": [
+        "lst_004",
+        "lst_007",
+        "lst_010",
+        "lst_018",
+        "lst_022",
+        "lst_032",
+        "lst_036"
+      ],
+      "required_ids": [
+        "lst_004",
+        "lst_022",
+        "lst_032"
+      ],
+      "results": [
+        {
+          "id": "lst_004",
+          "title": "90s Track Jacket — Navy/White Stripe",
+          "description": "Authentic 90s track jacket with stripe detail down the sleeves. Full zip. Lightweight — great for layering.",
+          "category": "outerwear",
+          "style_tags": [
+            "90s",
+            "vintage",
+            "athletic",
+            "streetwear"
+          ],
+          "size": "M",
+          "condition": "excellent",
+          "price": 45.0,
+          "colors": [
+            "navy",
+            "white"
+          ],
+          "brand": "Champion",
+          "platform": "poshmark"
+        },
+        {
+          "id": "lst_022",
+          "title": "90s Leather Bomber — Black",
+          "description": "Genuine leather bomber jacket. Classic 90s silhouette, slightly boxy. Ribbed collar, cuffs, and hem. Some creasing from age — adds character.",
+          "category": "outerwear",
+          "style_tags": [
+            "90s",
+            "vintage",
+            "leather",
+            "classic",
+            "grunge"
+          ],
+          "size": "M",
+          "condition": "good",
+          "price": 75.0,
+          "colors": [
+            "black"
+          ],
+          "brand": null,
+          "platform": "depop"
+        },
+        {
+          "id": "lst_032",
+          "title": "Shacket — Olive Canvas",
+          "description": "Olive canvas shacket — thicker than a shirt, lighter than a jacket. Chest pockets, button-front. Great transitional layer.",
+          "category": "outerwear",
+          "style_tags": [
+            "earth tones",
+            "classic",
+            "layering",
+            "minimal"
+          ],
+          "size": "M/L",
+          "condition": "excellent",
+          "price": 33.0,
+          "colors": [
+            "olive",
+            "green"
+          ],
+          "brand": null,
+          "platform": "poshmark"
+        }
+      ],
+      "wrong_type_ids": [],
+      "missing_required_ids": [],
+      "pass": true
+    },
+    {
+      "query": "vintage jacket under $50",
+      "allowed_ids": [
+        "lst_004",
+        "lst_007",
+        "lst_010",
+        "lst_018",
+        "lst_022",
+        "lst_032",
+        "lst_036"
+      ],
+      "required_ids": [
+        "lst_004",
+        "lst_007",
+        "lst_010",
+        "lst_018"
+      ],
+      "results": [
+        {
+          "id": "lst_004",
+          "title": "90s Track Jacket — Navy/White Stripe",
+          "description": "Authentic 90s track jacket with stripe detail down the sleeves. Full zip. Lightweight — great for layering.",
+          "category": "outerwear",
+          "style_tags": [
+            "90s",
+            "vintage",
+            "athletic",
+            "streetwear"
+          ],
+          "size": "M",
+          "condition": "excellent",
+          "price": 45.0,
+          "colors": [
+            "navy",
+            "white"
+          ],
+          "brand": "Champion",
+          "platform": "poshmark"
+        },
+        {
+          "id": "lst_007",
+          "title": "Denim Jacket — Light Wash, Cropped",
+          "description": "Cropped denim jacket in a light wash. Great structured shoulders. Blank canvas — no patches or pins but would be perfect to customize.",
+          "category": "outerwear",
+          "style_tags": [
+            "denim",
+            "vintage",
+            "classic",
+            "streetwear"
+          ],
+          "size": "S",
+          "condition": "excellent",
+          "price": 42.0,
+          "colors": [
+            "light blue"
+          ],
+          "brand": "Wrangler",
+          "platform": "poshmark"
+        },
+        {
+          "id": "lst_010",
+          "title": "Vintage Windbreaker — Color Block Purple/Teal",
+          "description": "Color block windbreaker from the early 90s. Packable, lightweight. The kind your dad definitely owned. Full zip with elastic cuffs.",
+          "category": "outerwear",
+          "style_tags": [
+            "90s",
+            "vintage",
+            "athletic",
+            "color block",
+            "streetwear"
+          ],
+          "size": "L",
+          "condition": "good",
+          "price": 40.0,
+          "colors": [
+            "purple",
+            "teal",
+            "black"
+          ],
+          "brand": null,
+          "platform": "thredUp"
+        },
+        {
+          "id": "lst_018",
+          "title": "Vintage Linen Blazer — Cream",
+          "description": "Lightweight linen blazer in cream. Relaxed fit, unstructured shoulders. Two front pockets. Could be dressed up or styled casually.",
+          "category": "outerwear",
+          "style_tags": [
+            "vintage",
+            "classic",
+            "linen",
+            "cottagecore",
+            "minimal"
+          ],
+          "size": "M/L",
+          "condition": "excellent",
+          "price": 38.0,
+          "colors": [
+            "cream",
+            "off-white"
+          ],
+          "brand": null,
+          "platform": "thredUp"
+        },
+        {
+          "id": "lst_032",
+          "title": "Shacket — Olive Canvas",
+          "description": "Olive canvas shacket — thicker than a shirt, lighter than a jacket. Chest pockets, button-front. Great transitional layer.",
+          "category": "outerwear",
+          "style_tags": [
+            "earth tones",
+            "classic",
+            "layering",
+            "minimal"
+          ],
+          "size": "M/L",
+          "condition": "excellent",
+          "price": 33.0,
+          "colors": [
+            "olive",
+            "green"
+          ],
+          "brand": null,
+          "platform": "poshmark"
+        }
+      ],
+      "wrong_type_ids": [],
+      "missing_required_ids": [],
+      "pass": true
+    },
+    {
+      "query": "vintage graphic tee under $30",
+      "allowed_ids": [
+        "lst_002",
+        "lst_006",
+        "lst_033"
+      ],
+      "required_ids": [
+        "lst_002",
+        "lst_006",
+        "lst_033"
+      ],
+      "results": [
+        {
+          "id": "lst_002",
+          "title": "Y2K Baby Tee — Butterfly Print",
+          "description": "Super cute early 2000s baby tee with butterfly graphic. Fitted crop length. Tag says medium but fits like a small.",
+          "category": "tops",
+          "style_tags": [
+            "y2k",
+            "vintage",
+            "graphic tee",
+            "cottagecore"
+          ],
+          "size": "S/M",
+          "condition": "excellent",
+          "price": 18.0,
+          "colors": [
+            "white",
+            "pink",
+            "purple"
+          ],
+          "brand": null,
+          "platform": "depop"
+        },
+        {
+          "id": "lst_006",
+          "title": "Graphic Tee — 2003 Tour Bootleg Style",
+          "description": "Vintage-style bootleg tee with faded graphic. Slightly boxy fit. 100% cotton, soft and worn-in.",
+          "category": "tops",
+          "style_tags": [
+            "graphic tee",
+            "vintage",
+            "grunge",
+            "streetwear",
+            "band tee"
+          ],
+          "size": "L",
+          "condition": "good",
+          "price": 24.0,
+          "colors": [
+            "black"
+          ],
+          "brand": null,
+          "platform": "depop"
+        },
+        {
+          "id": "lst_033",
+          "title": "Vintage Band Tee — Faded Grey",
+          "description": "Faded grey band-style tee with distressed graphic. Crew neck. Fits boxy. Well-loved but no holes or major damage.",
+          "category": "tops",
+          "style_tags": [
+            "vintage",
+            "grunge",
+            "band tee",
+            "graphic tee",
+            "streetwear"
+          ],
+          "size": "L",
+          "condition": "fair",
+          "price": 19.0,
+          "colors": [
+            "grey",
+            "charcoal"
+          ],
+          "brand": null,
+          "platform": "depop"
+        }
+      ],
+      "wrong_type_ids": [],
+      "missing_required_ids": [],
+      "pass": true
+    },
+    {
+      "query": "platform sneakers under $60",
+      "allowed_ids": [
+        "lst_019",
+        "lst_035"
+      ],
+      "required_ids": [
+        "lst_019",
+        "lst_035"
+      ],
+      "results": [
+        {
+          "id": "lst_019",
+          "title": "Platform Sneakers — White Chunky Sole",
+          "description": "White chunky platform sneakers. Very late 90s / early 2000s energy. Velcro straps. True to size. Some sole yellowing.",
+          "category": "shoes",
+          "style_tags": [
+            "y2k",
+            "platform",
+            "90s",
+            "streetwear"
+          ],
+          "size": "US 8",
+          "condition": "good",
+          "price": 48.0,
+          "colors": [
+            "white"
+          ],
+          "brand": null,
+          "platform": "poshmark"
+        },
+        {
+          "id": "lst_035",
+          "title": "Low-Top Canvas Sneakers — Off-White",
+          "description": "Classic low-top canvas sneakers in off-white. Very minimal. Some light yellowing on the sole edges from age. Size 9.",
+          "category": "shoes",
+          "style_tags": [
+            "classic",
+            "minimal",
+            "streetwear",
+            "basics"
+          ],
+          "size": "US 9",
+          "condition": "good",
+          "price": 20.0,
+          "colors": [
+            "off-white",
+            "cream"
+          ],
+          "brand": null,
+          "platform": "poshmark"
+        }
+      ],
+      "wrong_type_ids": [],
+      "missing_required_ids": [],
+      "pass": true
+    },
+    {
+      "query": "denim jacket under $50",
+      "allowed_ids": [
+        "lst_004",
+        "lst_007",
+        "lst_010",
+        "lst_018",
+        "lst_022",
+        "lst_032",
+        "lst_036"
+      ],
+      "required_ids": [
+        "lst_007"
+      ],
+      "results": [
+        {
+          "id": "lst_007",
+          "title": "Denim Jacket — Light Wash, Cropped",
+          "description": "Cropped denim jacket in a light wash. Great structured shoulders. Blank canvas — no patches or pins but would be perfect to customize.",
+          "category": "outerwear",
+          "style_tags": [
+            "denim",
+            "vintage",
+            "classic",
+            "streetwear"
+          ],
+          "size": "S",
+          "condition": "excellent",
+          "price": 42.0,
+          "colors": [
+            "light blue"
+          ],
+          "brand": "Wrangler",
+          "platform": "poshmark"
+        },
+        {
+          "id": "lst_004",
+          "title": "90s Track Jacket — Navy/White Stripe",
+          "description": "Authentic 90s track jacket with stripe detail down the sleeves. Full zip. Lightweight — great for layering.",
+          "category": "outerwear",
+          "style_tags": [
+            "90s",
+            "vintage",
+            "athletic",
+            "streetwear"
+          ],
+          "size": "M",
+          "condition": "excellent",
+          "price": 45.0,
+          "colors": [
+            "navy",
+            "white"
+          ],
+          "brand": "Champion",
+          "platform": "poshmark"
+        },
+        {
+          "id": "lst_032",
+          "title": "Shacket — Olive Canvas",
+          "description": "Olive canvas shacket — thicker than a shirt, lighter than a jacket. Chest pockets, button-front. Great transitional layer.",
+          "category": "outerwear",
+          "style_tags": [
+            "earth tones",
+            "classic",
+            "layering",
+            "minimal"
+          ],
+          "size": "M/L",
+          "condition": "excellent",
+          "price": 33.0,
+          "colors": [
+            "olive",
+            "green"
+          ],
+          "brand": null,
+          "platform": "poshmark"
+        }
+      ],
+      "wrong_type_ids": [],
+      "missing_required_ids": [],
+      "pass": true
+    },
+    {
+      "query": "vintage",
+      "allowed_ids": null,
+      "required_ids": [],
+      "results": [
+        {
+          "id": "lst_001",
+          "title": "Vintage Levi's 501 Jeans — Medium Wash",
+          "description": "Classic 501s in a perfect medium wash. Some light fading at the knees which adds to the vintage look. No rips or stains.",
+          "category": "bottoms",
+          "style_tags": [
+            "vintage",
+            "classic",
+            "denim",
+            "streetwear"
+          ],
+          "size": "W30 L30",
+          "condition": "good",
+          "price": 38.0,
+          "colors": [
+            "blue",
+            "indigo"
+          ],
+          "brand": "Levi's",
+          "platform": "depop"
+        },
+        {
+          "id": "lst_002",
+          "title": "Y2K Baby Tee — Butterfly Print",
+          "description": "Super cute early 2000s baby tee with butterfly graphic. Fitted crop length. Tag says medium but fits like a small.",
+          "category": "tops",
+          "style_tags": [
+            "y2k",
+            "vintage",
+            "graphic tee",
+            "cottagecore"
+          ],
+          "size": "S/M",
+          "condition": "excellent",
+          "price": 18.0,
+          "colors": [
+            "white",
+            "pink",
+            "purple"
+          ],
+          "brand": null,
+          "platform": "depop"
+        },
+        {
+          "id": "lst_003",
+          "title": "Oversized Flannel Shirt — Plaid Red/Black",
+          "description": "Classic oversized flannel. Great layering piece. A few tiny pulls in the fabric but nothing visible when worn.",
+          "category": "tops",
+          "style_tags": [
+            "grunge",
+            "vintage",
+            "flannel",
+            "streetwear",
+            "layering"
+          ],
+          "size": "XL (oversized)",
+          "condition": "good",
+          "price": 22.0,
+          "colors": [
+            "red",
+            "black"
+          ],
+          "brand": "Woolrich",
+          "platform": "thredUp"
+        },
+        {
+          "id": "lst_004",
+          "title": "90s Track Jacket — Navy/White Stripe",
+          "description": "Authentic 90s track jacket with stripe detail down the sleeves. Full zip. Lightweight — great for layering.",
+          "category": "outerwear",
+          "style_tags": [
+            "90s",
+            "vintage",
+            "athletic",
+            "streetwear"
+          ],
+          "size": "M",
+          "condition": "excellent",
+          "price": 45.0,
+          "colors": [
+            "navy",
+            "white"
+          ],
+          "brand": "Champion",
+          "platform": "poshmark"
+        },
+        {
+          "id": "lst_005",
+          "title": "Corduroy Wide-Leg Pants — Rust",
+          "description": "Beautiful rust-colored cords in a wide-leg silhouette. High-waisted. Minor pilling on the seat but otherwise great condition.",
+          "category": "bottoms",
+          "style_tags": [
+            "vintage",
+            "cottagecore",
+            "70s",
+            "earth tones"
+          ],
+          "size": "W28",
+          "condition": "good",
+          "price": 32.0,
+          "colors": [
+            "rust",
+            "orange"
+          ],
+          "brand": null,
+          "platform": "depop"
+        },
+        {
+          "id": "lst_006",
+          "title": "Graphic Tee — 2003 Tour Bootleg Style",
+          "description": "Vintage-style bootleg tee with faded graphic. Slightly boxy fit. 100% cotton, soft and worn-in.",
+          "category": "tops",
+          "style_tags": [
+            "graphic tee",
+            "vintage",
+            "grunge",
+            "streetwear",
+            "band tee"
+          ],
+          "size": "L",
+          "condition": "good",
+          "price": 24.0,
+          "colors": [
+            "black"
+          ],
+          "brand": null,
+          "platform": "depop"
+        },
+        {
+          "id": "lst_007",
+          "title": "Denim Jacket — Light Wash, Cropped",
+          "description": "Cropped denim jacket in a light wash. Great structured shoulders. Blank canvas — no patches or pins but would be perfect to customize.",
+          "category": "outerwear",
+          "style_tags": [
+            "denim",
+            "vintage",
+            "classic",
+            "streetwear"
+          ],
+          "size": "S",
+          "condition": "excellent",
+          "price": 42.0,
+          "colors": [
+            "light blue"
+          ],
+          "brand": "Wrangler",
+          "platform": "poshmark"
+        },
+        {
+          "id": "lst_010",
+          "title": "Vintage Windbreaker — Color Block Purple/Teal",
+          "description": "Color block windbreaker from the early 90s. Packable, lightweight. The kind your dad definitely owned. Full zip with elastic cuffs.",
+          "category": "outerwear",
+          "style_tags": [
+            "90s",
+            "vintage",
+            "athletic",
+            "color block",
+            "streetwear"
+          ],
+          "size": "L",
+          "condition": "good",
+          "price": 40.0,
+          "colors": [
+            "purple",
+            "teal",
+            "black"
+          ],
+          "brand": null,
+          "platform": "thredUp"
+        },
+        {
+          "id": "lst_012",
+          "title": "Oversized Crewneck Sweatshirt — Vintage Navy",
+          "description": "Perfectly faded navy crewneck. Genuinely vintage — not manufactured distressed. Ribbed cuffs and hem. No graphics, clean.",
+          "category": "tops",
+          "style_tags": [
+            "vintage",
+            "basics",
+            "oversized",
+            "classic"
+          ],
+          "size": "XL (fits oversized)",
+          "condition": "good",
+          "price": 20.0,
+          "colors": [
+            "navy"
+          ],
+          "brand": null,
+          "platform": "thredUp"
+        },
+        {
+          "id": "lst_013",
+          "title": "90s Silk Slip Dress — Floral, Midi Length",
+          "description": "Delicate 90s slip dress in a muted floral print. Midi length, adjustable straps. Light snag on the side seam — not visible when worn.",
+          "category": "bottoms",
+          "style_tags": [
+            "90s",
+            "vintage",
+            "feminine",
+            "floral",
+            "cottagecore"
+          ],
+          "size": "M",
+          "condition": "good",
+          "price": 30.0,
+          "colors": [
+            "ivory",
+            "dusty pink",
+            "green"
+          ],
+          "brand": null,
+          "platform": "depop"
+        }
+      ],
+      "wrong_type_ids": [],
+      "missing_required_ids": [],
+      "pass": null
+    }
+  ],
+  "untyped_query_unchanged": true,
+  "previous_valid_results_preserved": true
+}
