@@ -194,17 +194,17 @@ RUN 3: Scored these classic Levi's 501 Jeans for just $38.0 on depop! Paired wit
 - *What came back:* It suggested checking the item received by `suggest_outfit` against `session["selected_item"]`, and replacing the later tools with functions that raise an error during the empty-search test. Those checks also revealed that the query parser ignored `size 8` and that the loop was trying the unfinished MCP path from Unit 4.
 - *What I changed:* I updated the size parser so `size 8` becomes `US 8`, kept the Unit 3 search call local, and ran both the successful and empty-search paths myself. This helped me understand how session state makes each intermediate value visible and how a branch can be tested beyond checking only the final response.
 
-**Unit 4 — Testing and understanding the results**
+**Unit 4 — Turning criteria into tests**
 
-- *What I asked for:* I asked Codex to guide me through the milestones and explain the MCP move, failure checks and results in simple terms.
-- *What came back:* Codex made the MCP and tracing changes, adapted the evaluator to my criteria, and ran the tests. The state criterion needed five tee → empty → jacket sequences, while the caption and wardrobe criteria needed different inputs. The saved reports include actual tool inputs and sessions, not just the final answers.
-- *What this helped me understand:* Finishing a run is different from passing a criterion. The recorded inputs show whether the tools received the right item, and the outfit text still needs to be checked against the supplied wardrobe. Codex also helped review the outputs and draft the README explanations.
+- *What I asked:* I asked for help working through the testing milestones and explaining what each check showed.
+- *What came back:* Codex implemented the MCP and trace changes. For the state criterion, each trial contained a tee search, an empty search and a jacket search in the same process. The later tool inputs were recorded so they could be compared with the session.
+- *What this clarified:* Five successful requests are not automatically five passes. Each result has to be checked against the specific criterion. State checks need recorded inputs; caption and ownership checks need the generated text compared with the supplied data.
 
-**Unit 4 — Choosing and measuring one improvement**
+**Unit 4 — Measuring an improvement after all criteria passed**
 
-- *What I asked for:* After all five criteria passed, I asked what could be improved in Milestone 5 and asked Codex to carry it out step by step with explanations.
-- *What came back:* Codex pointed out that the jacket search also returned a dress and a hat. It defined a separate search test before editing the tool, added clothing-type filtering, and ran the same checks and original evaluation again.
-- *What changed and what I learned:* The focused test improved from 0/5 to 5/5, while the original criteria stayed at 5/5 each. This helped me see why an all-pass result can still leave a gap in what was tested. The implementation, test execution and write-up were AI-assisted; the before and after evidence is kept in the repository so the conclusions can be checked.
+- *What I asked:* I asked what could be improved next, then agreed to clothing-type filtering.
+- *What came back:* Codex identified a gap in the original tests: a jacket search could return a dress and a hat without failing any criterion. It defined focused checks before changing the tool, then I implemented the filter, and ran the before-and-after comparison and original evaluation.
+- *What changed and what this clarified:* The focused checks improved from 0/5 to 5/5, while the original criteria remained at 5/5 each. The conclusion is that the filter improved the measured search results, not that the whole system became perfect. The saved evidence and remaining limitations make that distinction explicit.
 
 <!-- ═══════════════════════ UNIT 4 — THE TEST ═══════════════════════
 
