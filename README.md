@@ -182,17 +182,29 @@ RUN 3: Scored these classic Levi's 501 Jeans for just $38.0 on depop! Paired wit
      "I gave Claude my search_listings spec. It returned None on no match
      instead of an empty list, so I changed it" is the level we want. -->
 
-**Moment 1**
+**Unit 3 — Moment 1**
 
 - *What I asked for:* I asked Codex to explain how a tool specification should describe inputs, outputs, and empty cases, and then used it to review my Tool Inventory for gaps.
 - *What came back:* The review pointed out that saying a tool “returns a list” was not specific enough. It also explained why `search_listings` should return `[]` when nothing matches, since the planning loop uses that value to choose whether to continue or stop.
 - *What I changed:* I documented the input types and exact return values for all three tools. I also made the empty cases explicit and learned how a tool's return value becomes part of the control flow of an agent.
 
-**Moment 2**
+**Unit 3 — Moment 2**
 
 - *What I asked for:* I asked Codex to help me check whether my planning loop was actually carrying state between tools and stopping correctly after an empty search.
 - *What came back:* It suggested checking the item received by `suggest_outfit` against `session["selected_item"]`, and replacing the later tools with functions that raise an error during the empty-search test. Those checks also revealed that the query parser ignored `size 8` and that the loop was trying the unfinished MCP path from Unit 4.
 - *What I changed:* I updated the size parser so `size 8` becomes `US 8`, kept the Unit 3 search call local, and ran both the successful and empty-search paths myself. This helped me understand how session state makes each intermediate value visible and how a branch can be tested beyond checking only the final response.
+
+**Unit 4 — Testing and understanding the results**
+
+- *What I asked for:* I asked Codex to guide me through the milestones and explain the MCP move, failure checks and results in simple terms.
+- *What came back:* Codex made the MCP and tracing changes, adapted the evaluator to my criteria, and ran the tests. The state criterion needed five tee → empty → jacket sequences, while the caption and wardrobe criteria needed different inputs. The saved reports include actual tool inputs and sessions, not just the final answers.
+- *What this helped me understand:* Finishing a run is different from passing a criterion. The recorded inputs show whether the tools received the right item, and the outfit text still needs to be checked against the supplied wardrobe. Codex also helped review the outputs and draft the README explanations.
+
+**Unit 4 — Choosing and measuring one improvement**
+
+- *What I asked for:* After all five criteria passed, I asked what could be improved in Milestone 5 and asked Codex to carry it out step by step with explanations.
+- *What came back:* Codex pointed out that the jacket search also returned a dress and a hat. It defined a separate search test before editing the tool, added clothing-type filtering, and ran the same checks and original evaluation again.
+- *What changed and what I learned:* The focused test improved from 0/5 to 5/5, while the original criteria stayed at 5/5 each. This helped me see why an all-pass result can still leave a gap in what was tested. The implementation, test execution and write-up were AI-assisted; the before and after evidence is kept in the repository so the conclusions can be checked.
 
 <!-- ═══════════════════════ UNIT 4 — THE TEST ═══════════════════════
 
@@ -400,9 +412,9 @@ behaved differently afterwards. If the rewire didn't work, say exactly where it
 broke — the error text and the last thing that worked. That earns the point in
 full. -->
 
-I registered `search_listings` in `mcp_server.py` with the same inputs as my Tool Inventory. In `agent.py::run_agent`, search now goes through `mcp_client.call_tool`, and its returned list is stored in `session["search_results"]`. The server calls the existing search function, so the filtering and ranking stay the same. The agent does not silently fall back to direct search.
+In Milestone 1, `search_listings` was registered in `mcp_server.py` with the same inputs as the Tool Inventory. In `agent.py::run_agent`, search now goes through `mcp_client.call_tool`, and its returned list is stored in `session["search_results"]`. The server calls the existing search function, so the MCP move itself did not change filtering or ranking. The separate Milestone 5 filter change is described below. The agent does not silently fall back to direct search.
 
-For Milestone 1, I compared the complete MCP and direct-search results for a matching query, a size-and-price-filtered query, and an impossible query. All three matched exactly, including list order. The full agent also returned an outfit and fit card through the MCP search path. That repeat run reused two cached model responses, so it checks the connection and data flow, not repeated model reliability. Commands and actual output are saved in [the MCP check](results/unit4_milestone1_mcp.md). The later evaluation will disable caching.
+The Milestone 1 comparison checked the complete MCP and direct-search results for a matching query, a size-and-price-filtered query, and an impossible query. All three matched exactly, including list order. The full agent also returned an outfit and fit card through the MCP search path. That repeat run reused two cached model responses, so it checks the connection and data flow, not repeated model reliability. Commands and actual output are saved in [the MCP check](results/unit4_milestone1_mcp.md). Both later evaluations ran with caching disabled.
 
 ---
 
@@ -461,6 +473,15 @@ This is still a limited filter. It recognizes three clothing families from words
      you did. "I ran out of time" is fine if it's true. Pretending nothing is
      left is not. -->
 
+None of the original five criteria is still missed: each scored 5/5 in the after-run. That only covers the recorded scenarios. It does not mean the agent handles every request correctly.
+
+The clearest remaining gap is matching all parts of a request. The after-results for `denim jacket under $50` still include the track jacket and olive shacket. They pass the new jacket-family filter, but they are not denim jackets. A next step would be to separate required attributes, such as material, from optional style words and test those requirements with fixed expected results.
+
+The type filter also has a small vocabulary. It only recognizes jacket, tee and sneaker families, and relies on words in listing titles. Other clothing types keep the old keyword behavior. More complex wording, such as asking for a jacket to wear with sneakers, could also confuse which type is being requested. Those cases have not been evaluated here; they would need their own tests before extending the filter.
+
+The model checks are limited too. Five correct captions and five ownership checks are useful evidence, but they cannot establish that future model responses will always be accurate. Additional wardrobe combinations and repeated runs would give broader coverage.
+
+The work stopped after one measured change so the before-and-after comparison stayed clear. Fixing attribute matching, expanding the type vocabulary and changing model prompts at the same time would make it harder to tell which change helped. The original criteria, baseline evidence and remaining limitations are kept as part of the result.
 
 
 <!-- ═════════════════════════════════════════════════════════════════════
