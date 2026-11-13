@@ -97,6 +97,13 @@ app = Flask(__name__)
 _one_at_a_time = threading.Lock()
 
 
+def decode_record_json(text):
+    """Keep non-standard JSON numbers as raw text, not invalid JSONL floats."""
+    def reject_constant(value):
+        raise ValueError(f"Non-standard JSON number: {value}")
+    return json.loads(text, parse_constant=reject_constant)
+
+
 @app.before_request
 def begin_request_record():
     """Capture input before validation; retain malformed bodies as raw text."""
@@ -111,7 +118,7 @@ def begin_request_record():
     raw = request.get_data(cache=True, as_text=True)
     if request.is_json:
         try:
-            g.run_input = json.loads(raw)
+            g.run_input = decode_record_json(raw)
             g.input_format = "json"
             return
         except (ValueError, TypeError):
@@ -135,9 +142,15 @@ def finish_request_record(response):
     A log-storage failure is exposed in a header and stderr. It must not erase
     a result already produced by the agent or pretend the record was saved.
     """
-    output = response.get_json(silent=True)
-    if output is None and not response.is_json:
-        output = {"text": response.get_data(as_text=True)}
+    response_text = response.get_data(as_text=True)
+    output = {"raw": response_text}
+    output_format = "raw"
+    if response.is_json:
+        try:
+            output = decode_record_json(response_text)
+            output_format = "json"
+        except (ValueError, TypeError):
+            pass
     error = g.run_exception or (output.get("error") if isinstance(output, dict) else None)
     outcome = ("error" if response.status_code >= 500 else
                "rejected" if response.status_code >= 400 else
@@ -149,6 +162,7 @@ def finish_request_record(response):
         "path": request.path,
         "input_format": g.input_format,
         "input": g.run_input,
+        "output_format": output_format,
         "output": output,
         "status_code": response.status_code,
         "outcome": outcome,

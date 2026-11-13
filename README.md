@@ -551,7 +551,7 @@ Each completed HTTP request appends one JSON object to `logs/capstone_runs.jsonl
 | Fields | What they record |
 |---|---|
 | `timestamp`, `request_id`, `method`, `path` | UTC start time, unique correlation ID and requested route |
-| `input_format`, `input`, `output` | Parsed JSON or raw input, and the returned JSON or response text |
+| `input_format`, `input`, `output_format`, `output` | Parsed JSON or raw input, and the returned JSON or raw response text |
 | `status_code`, `outcome`, `error` | HTTP status, success/rejected/stopped/error classification and any observed error |
 | `duration_ms` | Server-side elapsed time from the request hook to response logging, including queueing; excludes log-writing time and network round-trip time |
 | `queue_ms`, `agent_ms` | Time waiting for the existing lock, then elapsed agent-run time including MCP, API waits and retries |
@@ -559,6 +559,8 @@ Each completed HTTP request appends one JSON object to `logs/capstone_runs.jsonl
 | `model_usage` | Per-request model attempts and reported prompt/output/total tokens |
 
 `serve.py::model_usage_snapshot` reads `generate.call_count()` and `generate.token_counts()` before and after the agent run, inside the existing lock. This prevents another request's model usage from being attributed to the wrong run. Attempts include retries, not just successful answers. Token fields are reported counters: missing provider metadata is not proof of zero tokens or zero API spend. Health checks and rejected requests do not inherit the process's cumulative counts.
+
+Non-standard JSON values such as `NaN` or `Infinity` are retained as raw text in the record rather than allowed to invalidate a JSONL line. This changes capture only, not the endpoint's validation or response.
 
 The response's `X-Request-ID` matches its saved record. `X-Run-Log: saved` confirms the file append; `failed` and an error on stderr expose a storage failure while retaining the original response. `FITFINDR_LOG_STDOUT=1` also mirrors saved JSON records to the hosting log stream for copying into the committed evidence; it does not replace the JSONL file. A mirror failure is reported on stderr and does not falsely imply that the successful file append failed. Request headers and environment credentials are not added to the records. Request bodies and outputs are recorded, so demonstration inputs should be chosen deliberately.
 
