@@ -27,21 +27,26 @@ web server has to be. The reason is worth reading before you deploy: see the
 note above `_one_at_a_time` below — it also decides which gunicorn worker you
 can use.
 
-⚠️ There is deliberately NO logging, NO timing and NO request counting in this
-file. That is unit 9's follow-along: you instrument this yourself, first, and
-then deploy it. A structured log you were handed teaches you nothing about
-what belongs in one — and the timing field is the one everybody skips.
+Capstone instrumentation records each completed HTTP request in JSON Lines,
+including rejected requests and errors. Timing is server-side elapsed time,
+including queueing; it is not CPU time or network round-trip latency.
 """
 
+import datetime as dt
+import json
 import os
 import sys
 import threading
+import time
+import uuid
 
 # config first, and before anything that talks to the model: it loads your .env
 # and fixes the Windows console encoding for every module that imports it.
 import config  # noqa: F401
 
-from flask import Flask, jsonify, request
+from flask import Flask, g, got_request_exception, jsonify, request
+
+import run_log
 
 from agent import run_agent
 from utils.data_loader import get_example_wardrobe
@@ -91,6 +96,75 @@ app = Flask(__name__)
 _one_at_a_time = threading.Lock()
 
 
+@app.before_request
+def begin_request_record():
+    """Capture input before validation; retain malformed bodies as raw text."""
+    g.run_started = time.perf_counter()
+    g.run_timestamp = dt.datetime.now(dt.timezone.utc).isoformat(timespec="milliseconds")
+    g.run_id = uuid.uuid4().hex
+    g.queue_ms = 0.0
+    g.agent_ms = 0.0
+    g.run_exception = None
+    raw = request.get_data(cache=True, as_text=True)
+    if request.is_json:
+        try:
+            g.run_input = json.loads(raw)
+            g.input_format = "json"
+            return
+        except (ValueError, TypeError):
+            pass
+    g.run_input = {"raw": raw} if raw else None
+    g.input_format = "raw" if raw else "empty"
+
+
+def note_unhandled_exception(sender, exception, **extra):
+    """Observe framework errors without changing the existing error response."""
+    g.run_exception = f"{type(exception).__name__}: {exception}"
+
+
+got_request_exception.connect(note_unhandled_exception, app, weak=False)
+
+
+@app.after_request
+def finish_request_record(response):
+    """Save one record for the HTTP response, including non-2xx responses.
+
+    A log-storage failure is exposed in a header and stderr. It must not erase
+    a result already produced by the agent or pretend the record was saved.
+    """
+    output = response.get_json(silent=True)
+    if output is None and not response.is_json:
+        output = {"text": response.get_data(as_text=True)}
+    error = g.run_exception or (output.get("error") if isinstance(output, dict) else None)
+    outcome = ("error" if response.status_code >= 500 else
+               "rejected" if response.status_code >= 400 else
+               "stopped" if error else "success")
+    record = {
+        "timestamp": g.run_timestamp,
+        "request_id": g.run_id,
+        "method": request.method,
+        "path": request.path,
+        "input_format": g.input_format,
+        "input": g.run_input,
+        "output": output,
+        "status_code": response.status_code,
+        "outcome": outcome,
+        "error": error,
+        "duration_ms": round((time.perf_counter() - g.run_started) * 1000, 3),
+        "queue_ms": g.queue_ms,
+        "agent_ms": g.agent_ms,
+    }
+    response.headers["X-Request-ID"] = g.run_id
+    try:
+        run_log.append_record(record)
+    except (OSError, TypeError, ValueError) as exc:
+        response.headers["X-Run-Log"] = "failed"
+        app.logger.error("Could not save request %s: %s", g.run_id, exc)
+    else:
+        response.headers["X-Run-Log"] = "saved"
+    return response
+
+
 @app.get("/health")
 def health():
     """Is the server awake? A host pings something like this to find out."""
@@ -138,11 +212,17 @@ def ask():
 
     failure = None
     session = None
+    queued_at = time.perf_counter()
     with _one_at_a_time:
+        acquired_at = time.perf_counter()
+        g.queue_ms = round((acquired_at - queued_at) * 1000, 3)
         try:
             session = run_agent(query, wardrobe)
         except Exception as exc:  # noqa: BLE001 — a 500 with a sentence beats a hang
             failure = f"{type(exc).__name__}: {exc}"
+            g.run_exception = failure
+        finally:
+            g.agent_ms = round((time.perf_counter() - acquired_at) * 1000, 3)
 
     # Outside the lock: building a response is not work the next caller should
     # be waiting on.
@@ -172,6 +252,7 @@ if __name__ == "__main__":
         f"    -H 'Content-Type: application/json' \\\n"
         f"    -d '{{\"query\": \"vintage graphic tee under $30\"}}'\n"
     )
+    print(f"Request log: {config.RUN_LOG_PATH}")
     print("Ctrl-C to stop.\n")
 
     app.run(host="0.0.0.0", port=port, debug=debug)
