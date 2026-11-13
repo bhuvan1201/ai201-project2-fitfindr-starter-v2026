@@ -93,3 +93,6 @@ CACHE_DIR = ROOT / ".cache"
 
 DATA_DIR = ROOT / "data"
 RESULTS_DIR = ROOT / "results"
+
+# Capstone request records; override for a host or an isolated check.
+RUN_LOG_PATH = Path(os.getenv("FITFINDR_RUN_LOG", str(ROOT / "logs" / "capstone_runs.jsonl")))
