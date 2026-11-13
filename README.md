@@ -520,4 +520,28 @@ The work stopped after one measured change so the before-and-after comparison st
 
 ---
 
+## Capstone
+
+### The Shape
+
+**System:** FitFindr — the existing system from Units 3 and 4, in this same repository.
+
+**Shape:** A — deploy and instrument.
+
+**Run path:** Path A — a hosted service with a public URL. The hosting platform and live URL will be recorded once deployment is set up.
+
+I am extending FitFindr by adding an operational layer around the existing agent. The repo already has `serve.py`, which exposes the same `agent.py::run_agent` through `POST /ask` and provides `GET /health`. I will host that service and add structured JSON Lines records of requests, their outputs or failures, elapsed time, and model calls and tokens where available. I will document a reproducible run path in `RUNNING.md`, check it from a clean checkout, and measure the average cost of ten real runs using recorded time and API-reported usage.
+
+**Out of scope:**
+
+- Changing the search matching, clothing-type filter or ranking.
+- Adding another tool, changing the outfit and fit-card prompts, or expanding the listings and wardrobe data.
+- Building a frontend, accounts or a database.
+
+**Scope check:** This is one operational extension around the existing HTTP wrapper. The build will focus on request instrumentation and deployment setup; it will reuse the agent, MCP search tool and model adapter. If deployment setup consumes the available build block, I will record the blocker and cut scope rather than rebuild the system. The brief permits switching to Path B if hosting remains blocked, but the selected path at this stage is Path A.
+
+**Claim when finished:** A user can send a query to the hosted FitFindr service, receive its existing result, and inspect a saved run record showing what happened, how long it took and what model usage was reported.
+
+---
+
 📖 **How to run this project: [RUNNING.md](RUNNING.md)**
