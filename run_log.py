@@ -5,6 +5,7 @@ intact when health checks and agent responses finish on different threads.
 The hosting filesystem may be ephemeral: commit extracts during measurement.
 """
 import json
+import sys
 from pathlib import Path
 import threading
 
@@ -40,3 +41,11 @@ def read_records(*, path=None) -> list[dict]:
         return []
     return [json.loads(line) for line in target.read_text(encoding='utf-8').splitlines()
             if line.strip()]
+
+
+def mirror_record(record: dict) -> None:
+    """Optionally mirror a saved record as one JSON line to a host log stream."""
+    line = json.dumps(record, ensure_ascii=False, allow_nan=False) + '\n'
+    with _write_lock:
+        sys.stdout.write(line)
+        sys.stdout.flush()

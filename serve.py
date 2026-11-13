@@ -46,6 +46,7 @@ import config  # noqa: F401
 
 from flask import Flask, g, got_request_exception, jsonify, request
 
+import generate
 import run_log
 
 from agent import run_agent
@@ -105,6 +106,8 @@ def begin_request_record():
     g.queue_ms = 0.0
     g.agent_ms = 0.0
     g.run_exception = None
+    g.model_usage = {"model_attempts": 0, "reported_prompt_tokens": 0,
+                     "reported_output_tokens": 0, "reported_total_tokens": 0}
     raw = request.get_data(cache=True, as_text=True)
     if request.is_json:
         try:
@@ -153,6 +156,9 @@ def finish_request_record(response):
         "duration_ms": round((time.perf_counter() - g.run_started) * 1000, 3),
         "queue_ms": g.queue_ms,
         "agent_ms": g.agent_ms,
+        "configured_model": config.MODEL,
+        "cache_enabled": config.CACHE_ENABLED,
+        "model_usage": g.model_usage,
     }
     response.headers["X-Request-ID"] = g.run_id
     try:
@@ -162,7 +168,26 @@ def finish_request_record(response):
         app.logger.error("Could not save request %s: %s", g.run_id, exc)
     else:
         response.headers["X-Run-Log"] = "saved"
+        if config.RUN_LOG_STDOUT:
+            try:
+                run_log.mirror_record(record)
+            except OSError as exc:
+                app.logger.error("Saved request %s but could not mirror it: %s", g.run_id, exc)
     return response
+
+
+def model_usage_snapshot():
+    """Cumulative adapter counters. Read before/after a run inside the lock.
+
+    Attempts include retries, not just successful answers. Token counts are
+    what the provider reported to the existing adapter; missing metadata is
+    not proof that a request used zero tokens or incurred zero spend.
+    """
+    tokens = generate.token_counts()
+    return {"model_attempts": generate.call_count(),
+            "reported_prompt_tokens": tokens["prompt"],
+            "reported_output_tokens": tokens["output"],
+            "reported_total_tokens": tokens["total"]}
 
 
 @app.get("/health")
@@ -216,12 +241,16 @@ def ask():
     with _one_at_a_time:
         acquired_at = time.perf_counter()
         g.queue_ms = round((acquired_at - queued_at) * 1000, 3)
+        usage_before = model_usage_snapshot()
         try:
             session = run_agent(query, wardrobe)
         except Exception as exc:  # noqa: BLE001 — a 500 with a sentence beats a hang
             failure = f"{type(exc).__name__}: {exc}"
             g.run_exception = failure
         finally:
+            usage_after = model_usage_snapshot()
+            g.model_usage = {key: usage_after[key] - usage_before[key]
+                             for key in usage_before}
             g.agent_ms = round((time.perf_counter() - acquired_at) * 1000, 3)
 
     # Outside the lock: building a response is not work the next caller should

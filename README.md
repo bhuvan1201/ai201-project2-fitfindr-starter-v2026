@@ -542,6 +542,30 @@ I am extending FitFindr by adding an operational layer around the existing agent
 
 **Claim when finished:** A user can send a query to the hosted FitFindr service, receive its existing result, and inspect a saved run record showing what happened, how long it took and what model usage was reported.
 
+### Build — operational instrumentation
+
+The extension lives in `serve.py` and `run_log.py`. The existing agent, tools, search ranking and model adapter are unchanged. `POST /ask` still returns the agent's session dictionary, including its existing early-stop messages. `GET /health` keeps its original response.
+
+Each completed HTTP request appends one JSON object to `logs/capstone_runs.jsonl`. `FITFINDR_RUN_LOG` can select another path. The record includes:
+
+| Fields | What they record |
+|---|---|
+| `timestamp`, `request_id`, `method`, `path` | UTC start time, unique correlation ID and requested route |
+| `input_format`, `input`, `output` | Parsed JSON or raw input, and the returned JSON or response text |
+| `status_code`, `outcome`, `error` | HTTP status, success/rejected/stopped/error classification and any observed error |
+| `duration_ms` | Server-side elapsed time from the request hook to response logging, including queueing; excludes log-writing time and network round-trip time |
+| `queue_ms`, `agent_ms` | Time waiting for the existing lock, then elapsed agent-run time including MCP, API waits and retries |
+| `configured_model`, `cache_enabled` | The model and cache configuration for interpreting the run |
+| `model_usage` | Per-request model attempts and reported prompt/output/total tokens |
+
+`serve.py::model_usage_snapshot` reads `generate.call_count()` and `generate.token_counts()` before and after the agent run, inside the existing lock. This prevents another request's model usage from being attributed to the wrong run. Attempts include retries, not just successful answers. Token fields are reported counters: missing provider metadata is not proof of zero tokens or zero API spend. Health checks and rejected requests do not inherit the process's cumulative counts.
+
+The response's `X-Request-ID` matches its saved record. `X-Run-Log: saved` confirms the file append; `failed` and an error on stderr expose a storage failure while retaining the original response. `FITFINDR_LOG_STDOUT=1` also mirrors saved JSON records to the hosting log stream for copying into the committed evidence; it does not replace the JSONL file. A mirror failure is reported on stderr and does not falsely imply that the successful file append failed. Request headers and environment credentials are not added to the records. Request bodies and outputs are recorded, so demonstration inputs should be chosen deliberately.
+
+The logger supports the existing single-worker service. File persistence across a host restart is not assumed; measured extracts must be committed in the session that produces them. The public hosting platform, deployment settings, clean-checkout instructions and measured cost remain for the run-path milestone.
+
+**Development verification:** AI-assisted implementation checks used temporary logs and a temporary Python 3.13 environment with the same installed package versions because the original environment's files were offloaded to iCloud. Checks exercised the real MCP search and original empty-result branch, the matching agent pipeline with controlled generation, rejected and exceptional requests, storage failure, and per-request usage isolation under concurrent requests. No model API calls were made, synthetic counters were not treated as cost measurements, and these temporary records were not committed as capstone run evidence. The formal criteria and measurements are still to be supplied in the required order.
+
 ---
 
 📖 **How to run this project: [RUNNING.md](RUNNING.md)**
