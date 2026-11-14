@@ -109,3 +109,52 @@ An outfit suggestion should use the wardrobe information I supplied. A small or 
      A number you missed stays where it is, gets diagnosed, and gets a fix
      attempted. That's where the points are.
      ───────────────────────────────────────────────────────────────────────── -->
+
+
+---
+
+## Capstone — Shape A: deploy and instrument
+
+These five criteria apply to the hosted and instrumented FitFindr extension. The earlier Unit 3/4 criteria above are preserved separately. Criteria and reasons below are transferred from the reviewed README drafts without changing their wording or targets.
+
+Formal capstone evaluation trials have not run. Earlier deployment smoke checks remain identified as development evidence in the README. See the [testability review](notes/capstone_criteria_review.md) for measurement setup and remaining ambiguities.
+
+### 1. Hosted workflow completion
+
+For at least 4 of 5 requests to the public /ask endpoint using 90s track jacket in size M, the response returns HTTP 200 with a selected item, a non-empty outfit suggestion and a non-empty fit card.
+
+**Why this target:**
+
+Deploying FitFindr should preserve the complete workflow: finding an item, suggesting an outfit and creating a fit card. Each matching request depends on MCP search and two model calls. I chose 4 of 5 as a basic availability target, allowing one failed request while requiring the full workflow to succeed repeatedly. Any failure still needs to be recorded and diagnosed.
+
+### 2. Recoverable structured logs
+
+For all 5 requests to /health, I can recover a structured log record containing a timestamp, input, output, HTTP status and elapsed time.
+
+**Why this target:**
+
+Logging is a main part of my capstone extension. Without the input, output, status and elapsed time, I cannot explain what happened during a request. I chose 5 of 5 because /health does not depend on the model, and every completed health request should leave a record. A missing record would leave a gap in my evidence.
+
+### 3. Warm hosted response time
+
+After one warm-up request, at least 4 of 5 sequential matching /ask requests return an outfit suggestion and fit card within 45 seconds each, measured from the client.
+
+**Why this target:**
+
+FitFindr performs an MCP search followed by two model calls, so I expect generating an outfit to take longer than a health check. I chose 45 seconds as the waiting-time budget I want the hosted workflow to meet. I exclude one warm-up request to measure performance after initialization, and require 4 of 5 requests to meet the budget so that a single slow request does not decide the whole result.
+
+### 4. Reported model usage
+
+For all 5 uncached requests that successfully generate an outfit and fit card, the corresponding log records show at least two model attempts and a reported total token count greater than zero.
+
+**Why this target:**
+
+A completed outfit and fit card require two separate generation steps. With caching disabled, I expect at least two model attempts and a positive reported token count. These numbers are necessary for measuring the usage of a run. I chose 5 of 5 because every successful request should have its usage captured; otherwise, my cost report would be incomplete. This checks that usage is recorded, while checking its accuracy would require additional evidence.
+
+### 5. Visible logging failure
+
+With the log destination deliberately configured as an invalid path, all 10 /health requests still return HTTP 200, include X-Run-Log: failed, and produce a logging error on stderr.
+
+**Why this target:**
+
+The service should make a logging failure visible while continuing to answer a valid health request. The failed header and stderr message let me distinguish an unavailable log from a successfully saved record. I chose 10 of 10 because this path does not depend on model behavior. Repeating the failure ten times checks that it remains contained and does not prevent subsequent requests from completing.

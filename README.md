@@ -589,6 +589,10 @@ The actual client responses, request IDs and matching application records are in
 
 **Still needed for the run-path milestone:** the ten real model runs, their average measured elapsed time and reported token usage, and at least ten pasted log entries including a failure. The five capstone criteria must be written unaided and committed before formal evaluation; the earlier Unit 3/4 criteria are not replacements.
 
+### Acceptance Criteria
+
+The five capstone criteria and their reasons are recorded in [criteria.md — Capstone](criteria.md#capstone--shape-a-deploy-and-instrument). The earlier Unit 3/4 criteria remain in their original section. The [testability review](notes/capstone_criteria_review.md) records how each can be checked and which measurement choices need to be fixed before evaluation.
+
 ---
 
 📖 **How to run this project: [RUNNING.md](RUNNING.md)**
