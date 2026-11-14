@@ -1,0 +1,19 @@
+# Only source and runtime data belong in the function bundle.
+.git/
+.vercel/
+.env
+.env.*
+.venv/
+.venv-*/
+venv/
+env/
+__pycache__/
+**/__pycache__/
+*.pyc
+.cache/
+logs/
+results/
+notes/
+*.ipynb
+*.xlsx
+.DS_Store

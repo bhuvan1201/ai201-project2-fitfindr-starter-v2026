@@ -1,0 +1,15 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "flask",
+  "functions": {
+    "serve.py": {
+      "maxDuration": 300
+    }
+  },
+  "env": {
+    "FITFINDR_RUN_LOG": "/tmp/fitfindr/capstone_runs.jsonl",
+    "FITFINDR_LOG_STDOUT": "1",
+    "AI201_CACHE": "0",
+    "AI201_DEBUG": "0"
+  }
+}

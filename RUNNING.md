@@ -1,6 +1,6 @@
 # Running FitFindr
 
-Everything about how the starter works and how to use it.
+See **Capstone — Vercel** below for current deployment instructions. The course commands remain useful for running the existing agent.
 
 ---
 
@@ -62,9 +62,7 @@ python app.py ask 'vintage graphic tee under $30'
 > and substitutes nothing. You get results with no price ceiling and no error
 > saying so. Single quotes are literal in PowerShell, bash and zsh alike.
 
-That last one runs the loop. All three tools are stubs, so it will tell you the
-loop isn't built yet. **That's the correct starting position** — it runs, and it
-does nothing.
+That last command now runs the implemented agent. The original starter had stubs; Units 3 and 4 supplied the tools, planning loop and MCP search.
 
 ---
 
@@ -119,39 +117,86 @@ Useful flags on `ask`:
 
 ---
 
-## Running it somewhere else — **unit 9**
+## Capstone — Vercel (Shape A, Path A)
 
-Everything above exits when the command finishes. A host has nothing to keep
-running, so before you can deploy this you need something that stays up.
-`serve.py` is that: the same `run_agent()`, behind two HTTP routes.
+**Public API:** https://fitfindr-capstone.vercel.app. Verified without Vercel authentication: `/health` returns 200; MCP empty search returns guidance; missing query returns 400. Request records were recovered from runtime logs. The model-dependent happy path, clean-checkout verification and ten-run cost evidence are still pending.
 
-On your machine:
+### Environment and installation
+
+Use Python **3.13** (local verification environment: **3.13.15**). The host reads `.python-version`. There is no local model download: FitFindr calls the Gemini API and reads the small JSON files in `data/`. MCP starts another Python interpreter. `mcp_client.py::_server_parameters` passes the parent import paths explicitly so that the child can find Vercel-vendored packages, uses the source directory as its working directory, and disables bytecode writes. It does not pass the API key to the search subprocess. `requirements.txt` keeps the course version bounds; `requirements.lock` constrains all 48 application dependencies to the versions used for this build. Vercel prioritizes `pyproject.toml`, so its deployment dependency list mirrors those same 48 pins. Update both lists together.
+
+From a fresh terminal, outside another repository:
 
 ```bash
-python serve.py
-curl -X POST http://localhost:5000/ask \
+git clone https://github.com/bhuvan1201/ai201-project2-fitfindr-starter-v2026.git
+cd ai201-project2-fitfindr-starter-v2026
+python3.13 -m venv "$HOME/.venvs/fitfindr-capstone-py313"
+source "$HOME/.venvs/fitfindr-capstone-py313/bin/activate"
+python -m pip install -r requirements.txt
+cp .env.example .env
+```
+
+Enter your own `GEMINI_API_KEY` in `.env`. Keep this file private. If the repository is in iCloud, keeping the virtual environment outside the synced folder avoids offloaded package files interrupting Python.
+
+With that environment active, this single command starts the HTTP service locally:
+
+```bash
+AI201_CACHE=0 FITFINDR_LOG_STDOUT=1 python serve.py
+```
+
+In a second terminal:
+
+```bash
+curl -i http://127.0.0.1:5000/health
+curl -i http://127.0.0.1:5000/ask \
   -H 'Content-Type: application/json' \
-  -d '{"query": "vintage graphic tee under $30"}'
+  -d '{"query":"90s track jacket in size M"}'
 ```
 
-On a host, the start command is:
+The second request uses the real model and can consume API quota. The existing `app.py` command-line interface still works.
+
+### Deploy to Vercel
+
+The Flask app is exported as `serve:app` in `pyproject.toml`, so Vercel does not mistake the existing CLI `app.py` for the web entrypoint. Vercel runs the WSGI app itself; no Gunicorn start-command override is needed. `vercel.json` selects Flask and a 300-second maximum function duration; that limit is configuration, not a measured response-time promise.
+
+Use the checked CLI version, then select your own account and the FitFindr project:
 
 ```bash
-gunicorn serve:app
+npx --yes vercel@65.16.0 login
+npx --yes vercel@65.16.0 link
+npx --yes vercel@65.16.0 env add GEMINI_API_KEY --environment production --sensitive
+npx --yes vercel@65.16.0 deploy --prod
 ```
 
-| Thing | What it means |
-|---|---|
-| `PORT` | The host tells your app which port to listen on by setting this. Both `serve.py` and `gunicorn` read it, and `serve.py` falls back to `5000` on your machine. Don't hard-code a port |
-| `POST /ask` | `{"query": "...", "wardrobe": {...}}` — wardrobe optional. Returns the session dict, `error` and all |
-| `GET /health` | Says `ok` if the app is awake |
-| It answers one request at a time | On purpose. A second request waits for the first to finish, and prints `[serve] another request is still running` while it waits. An MCP tool call starts a whole second Python process, and the free tier's 512 MB has no room for two of those at once — and `generate.py`'s rate-limit counting assumes one caller. The reasoning is written out in `serve.py` |
-| `gunicorn serve:app`, exactly | Not `-k gevent`, not `-k eventlet`, not wrapped for uvicorn. `mcp_client.call_tool` uses `asyncio.run()`, which won't start inside a running event loop, so an async worker breaks **every** MCP call — and only once you've deployed it |
-| The first request is slow | The free tier puts your app to sleep after about fifteen minutes of nothing. The next request wakes it up and waits for it — around a minute. Not a bug, and worth knowing before you demo it |
+Paste the key only into Vercel's private environment-variable prompt. Do not put it in a command argument or a committed file. If you also deploy previews, add the key to the preview environment separately. `.vercelignore` excludes `.env`, local environments, old results and logs from uploads. `.vercel/` and downloaded local environment files are Git-ignored.
 
-`serve.py` ships with **no logging and no timing in it**, on purpose. You add
-that yourself in the follow-along, before you deploy — instrumenting first is
-the point of the session.
+The committed configuration sets these non-secret runtime values:
+
+| Setting | Value and purpose |
+|---|---|
+| `FITFINDR_RUN_LOG` | `/tmp/fitfindr/capstone_runs.jsonl` — Vercel's application directory is read-only |
+| `FITFINDR_LOG_STDOUT` | `1` — also send each saved JSON record to runtime logs |
+| `AI201_CACHE` | `0` — no writes to the repository cache and no cached model answers in measurements |
+| `AI201_DEBUG` | `0` — normal model-adapter logging |
+
+### Preserve the run record
+
+Request records contain UTC time, input, output, status, elapsed milliseconds, queue and agent time, and per-request reported model usage. `X-Request-ID` connects the HTTP response to its record; check `X-Run-Log: saved` too. Details are under README → Capstone → Build.
+
+Vercel's `/tmp` file is temporary and belongs to one function instance. It is not a complete shared history across instances or deployments. Capture the mirrored records from the project's **Logs** page, or use the linked CLI project:
+
+```bash
+mkdir -p results
+npx --yes vercel@65.16.0 logs --environment production --since 30m --json > results/capstone_vercel_runtime_logs.jsonl
+```
+
+Keep the raw export, extract the actual application JSON records, and commit the evidence in the same session. Paste at least ten real request records into the README, including a failure. Do not use development fixtures as evidence.
+
+Run measurements sequentially. The agent lock, pacing and usage counters are per process, not global across Vercel instances. `duration_ms` measures server-side wall time from the Flask request hook, including that lock's queue; it excludes network time, platform queueing, initialization before the hook and log writing. `agent_ms` includes API waits and retries. Record cold versus warm requests explicitly. A platform hard timeout can terminate the function before a final record is written, so also retain client responses and Vercel errors.
+
+For the required cost number, measure ten real runs and report their mean elapsed seconds and reported token totals. Missing usage metadata is not evidence of zero API spend. Do not describe elapsed wall time as CPU time. Acceptance criteria must be written and committed before formal evaluation runs.
+
+[Vercel Flask entrypoint guide](https://vercel.com/docs/frameworks/backend/flask), [Python runtime](https://vercel.com/docs/functions/runtimes/python), [runtime filesystem](https://vercel.com/docs/functions/runtimes), [CLI runtime logs](https://vercel.com/docs/cli/logs).
 
 ---
 
@@ -160,8 +205,8 @@ the point of the session.
 | File | What it does |
 |---|---|
 | `config.py` | Every setting worth changing — **TEMPERATURE and the cache are at the top** |
-| `tools.py` | Your three tools. **Stubs — you build these** |
-| `agent.py` | The planning loop and the session. **Stub — you build this** |
+| `tools.py` | The three implemented FitFindr tools |
+| `agent.py` | The implemented planning loop and session |
 | `generate.py` | The only thing that calls out to a service. Handles pacing and quota |
 | `trace.py` | The trace helper, and the loop's stop condition |
 | `app.py` | The command line |

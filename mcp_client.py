@@ -28,6 +28,7 @@ right trade for one unit.
 
 import asyncio
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -68,14 +69,26 @@ def call_tool(name: str, arguments: dict):
         ) from exc
 
 
-async def _call(name: str, arguments: dict):
-    from mcp import ClientSession, StdioServerParameters
-    from mcp.client.stdio import stdio_client
+def _server_parameters():
+    """Give the child the parent's import paths, including host-vendored packages."""
+    from mcp import StdioServerParameters
 
-    params = StdioServerParameters(
+    return StdioServerParameters(
         command=sys.executable,
         args=[str(SERVER)],
+        cwd=SERVER.parent,
+        env={
+            "PYTHONPATH": os.pathsep.join(str(Path(p).resolve()) for p in sys.path if p),
+            "PYTHONDONTWRITEBYTECODE": "1",
+        },
     )
+
+
+async def _call(name: str, arguments: dict):
+    from mcp import ClientSession
+    from mcp.client.stdio import stdio_client
+
+    params = _server_parameters()
 
     async with stdio_client(params) as (read, write):
         async with ClientSession(read, write) as session:
@@ -146,10 +159,10 @@ if __name__ == "__main__":
     print("Asking mcp_server.py what it offers…\n")
 
     async def _list():
-        from mcp import ClientSession, StdioServerParameters
+        from mcp import ClientSession
         from mcp.client.stdio import stdio_client
 
-        params = StdioServerParameters(command=sys.executable, args=[str(SERVER)])
+        params = _server_parameters()
         async with stdio_client(params) as (read, write):
             async with ClientSession(read, write) as session:
                 await session.initialize()

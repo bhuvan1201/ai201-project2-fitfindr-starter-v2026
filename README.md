@@ -528,7 +528,7 @@ The work stopped after one measured change so the before-and-after comparison st
 
 **Shape:** A — deploy and instrument.
 
-**Run path:** Path A — a hosted service with a public URL. The hosting platform and live URL will be recorded once deployment is set up.
+**Run path:** Path A — a hosted service with a public URL. Vercel — https://fitfindr-capstone.vercel.app. This is an HTTP API: use `GET /health` or `POST /ask`; there is no frontend.
 
 I am extending FitFindr by adding an operational layer around the existing agent. The repo already has `serve.py`, which exposes the same `agent.py::run_agent` through `POST /ask` and provides `GET /health`. I will host that service and add structured JSON Lines records of requests, their outputs or failures, elapsed time, and model calls and tokens where available. I will document a reproducible run path in `RUNNING.md`, check it from a clean checkout, and measure the average cost of ten real runs using recorded time and API-reported usage.
 
@@ -564,9 +564,30 @@ Non-standard JSON values such as `NaN` or `Infinity` are retained as raw text in
 
 The response's `X-Request-ID` matches its saved record. `X-Run-Log: saved` confirms the file append; `failed` and an error on stderr expose a storage failure while retaining the original response. `FITFINDR_LOG_STDOUT=1` also mirrors saved JSON records to the hosting log stream for copying into the committed evidence; it does not replace the JSONL file. A mirror failure is reported on stderr and does not falsely imply that the successful file append failed. Request headers and environment credentials are not added to the records. Request bodies and outputs are recorded, so demonstration inputs should be chosen deliberately.
 
-The logger supports the existing single-worker service. File persistence across a host restart is not assumed; measured extracts must be committed in the session that produces them. The public hosting platform, deployment settings, clean-checkout instructions and measured cost remain for the run-path milestone.
+The logger supports the existing single-worker service. File persistence across a host restart is not assumed; measured extracts must be committed in the session that produces them. The selected host is Vercel. `RUNNING.md` documents its entrypoint, Python environment, temporary log storage and disabled response cache. Public health, MCP empty-search and rejected-input checks pass. Clean-checkout verification and the measured cost are tracked below.
 
 **Development verification:** AI-assisted implementation checks used temporary logs and a temporary Python 3.13 environment with the same installed package versions because the original environment's files were offloaded to iCloud. Checks exercised the real MCP search and original empty-result branch, the matching agent pipeline with controlled generation, rejected and exceptional requests, storage failure, and per-request usage isolation under concurrent requests. No model API calls were made, synthetic counters were not treated as cost measurements, and these temporary records were not committed as capstone run evidence. The formal criteria and measurements are still to be supplied in the required order.
+
+
+### Hosted run path — deployment checks
+
+I chose Vercel. The service is at **https://fitfindr-capstone.vercel.app**, with the health route at **https://fitfindr-capstone.vercel.app/health**. `RUNNING.md` has the installation and deployment commands. The Gemini key is a private production secret; it is excluded from source uploads and Git.
+
+Two setup problems showed up on the host. First, Vercel installed from `pyproject.toml` instead of `requirements.txt`, so the initial function could not import `dotenv`. The deployment manifest now includes the same 48 exact package pins as the local constraints file. Second, the MCP child interpreter could not import `mcp`, even though the Flask process could. `mcp_client.py::_server_parameters` now explicitly passes the parent's Python import paths to the child. This is a runtime setup change; the search rules and tool outputs are unchanged.
+
+After those fixes, these unauthenticated requests to the production URL were checked:
+
+| Check | Result | Log confirmation |
+|---|---|---|
+| `GET /health` | 200, `{"status":"ok"}` | `X-Run-Log: saved` |
+| `POST /ask`, `designer ballgown size XXS under $5` | 200, empty results, actionable guidance, `fit_card: null` | `X-Run-Log: saved` |
+| `POST /ask`, `{}` | 400, asks for a query | `X-Run-Log: saved` |
+
+The actual client responses, request IDs and matching application records are in [deployment smoke evidence](results/capstone_deployment_smoke.json); the [raw Vercel runtime export](results/capstone_deployment_smoke_runtime.jsonl) also retains the observed setup errors. These are deployment checks, not the formal three-trial results. The saved application records report zero model attempts, and no Gemini-generated outfit was requested. The model-dependent happy path and measured cost have not been checked yet.
+
+**Clean-checkout verification:** pending.
+
+**Still needed for the run-path milestone:** the ten real model runs, their average measured elapsed time and reported token usage, and at least ten pasted log entries including a failure. The five capstone criteria must be written unaided and committed before formal evaluation; the earlier Unit 3/4 criteria are not replacements.
 
 ---
 
