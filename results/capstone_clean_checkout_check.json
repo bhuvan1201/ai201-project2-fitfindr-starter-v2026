@@ -1,0 +1,231 @@
+{
+  "purpose": "Clean-checkout startup verification, not formal acceptance or cost trials",
+  "checked_revision": "994e563771680768c66adf0d10e1531a3afad371",
+  "clone_source": "Local committed FitFindr repository; this revision was not yet pushed to GitHub",
+  "python": "Python 3.13.15",
+  "installation": "python3.13 -m venv <new temporary environment>; python -m pip install -r requirements.txt; python -m pip check",
+  "start_command": "AI201_CACHE=0 FITFINDR_LOG_STDOUT=1 python serve.py",
+  "test_overrides": "Temporary PORT, FITFINDR_RUN_LOG and bytecode directory; no Gemini key",
+  "checks": {
+    "http_health": 200,
+    "real_mcp_empty_search": 200,
+    "fit_card_is_none": true,
+    "actionable_message_present": true,
+    "log_saved": true,
+    "git_working_tree_clean": true,
+    "model_attempts": 0
+  },
+  "application_records": [
+    {
+      "timestamp": "2026-11-14T07:21:16.254+00:00",
+      "request_id": "95c8d7145c764bda960bd6b297bcbc7a",
+      "method": "GET",
+      "path": "/health",
+      "input_format": "empty",
+      "input": null,
+      "output_format": "json",
+      "output": {
+        "status": "ok"
+      },
+      "status_code": 200,
+      "outcome": "success",
+      "error": null,
+      "duration_ms": 0.336,
+      "queue_ms": 0.0,
+      "agent_ms": 0.0,
+      "configured_model": "gemini-3.5-flash-lite",
+      "cache_enabled": false,
+      "model_usage": {
+        "model_attempts": 0,
+        "reported_prompt_tokens": 0,
+        "reported_output_tokens": 0,
+        "reported_total_tokens": 0
+      }
+    },
+    {
+      "timestamp": "2026-11-14T07:21:16.256+00:00",
+      "request_id": "5449807518844df8a7dad1297f4dfba6",
+      "method": "POST",
+      "path": "/ask",
+      "input_format": "json",
+      "input": {
+        "query": "designer ballgown size XXS under $5"
+      },
+      "output_format": "json",
+      "output": {
+        "error": "Nothing in the listings matched description 'designer ballgown', size XXS, under $5.\nThings to change: try broader words — 'jacket' finds more than 'cropped corduroy jacket'; drop the size, or try a neighbouring one; raise the price ceiling above $5.",
+        "fit_card": null,
+        "outfit_suggestion": null,
+        "parsed": {
+          "description": "designer ballgown",
+          "max_price": 5.0,
+          "size": "XXS"
+        },
+        "query": "designer ballgown size XXS under $5",
+        "search_results": [],
+        "selected_item": null,
+        "wardrobe": {
+          "items": [
+            {
+              "category": "bottoms",
+              "colors": [
+                "dark blue",
+                "indigo"
+              ],
+              "id": "w_001",
+              "name": "Baggy straight-leg jeans, dark wash",
+              "notes": "High-waisted, sits above the hip",
+              "style_tags": [
+                "denim",
+                "streetwear",
+                "baggy"
+              ]
+            },
+            {
+              "category": "bottoms",
+              "colors": [
+                "khaki",
+                "tan"
+              ],
+              "id": "w_002",
+              "name": "Wide-leg khaki trousers",
+              "notes": null,
+              "style_tags": [
+                "earth tones",
+                "minimal",
+                "wide-leg"
+              ]
+            },
+            {
+              "category": "tops",
+              "colors": [
+                "white"
+              ],
+              "id": "w_003",
+              "name": "White ribbed tank top",
+              "notes": "Goes with everything",
+              "style_tags": [
+                "basics",
+                "minimal",
+                "fitted"
+              ]
+            },
+            {
+              "category": "tops",
+              "colors": [
+                "grey",
+                "charcoal"
+              ],
+              "id": "w_004",
+              "name": "Oversized grey crewneck sweatshirt",
+              "notes": "Really oversized — drops below the hip",
+              "style_tags": [
+                "oversized",
+                "basics",
+                "cozy"
+              ]
+            },
+            {
+              "category": "tops",
+              "colors": [
+                "black"
+              ],
+              "id": "w_005",
+              "name": "Black cropped zip hoodie",
+              "notes": null,
+              "style_tags": [
+                "athletic",
+                "streetwear",
+                "cropped"
+              ]
+            },
+            {
+              "category": "outerwear",
+              "colors": [
+                "black"
+              ],
+              "id": "w_006",
+              "name": "Vintage black denim jacket",
+              "notes": "Slightly cropped",
+              "style_tags": [
+                "denim",
+                "vintage",
+                "classic"
+              ]
+            },
+            {
+              "category": "shoes",
+              "colors": [
+                "white"
+              ],
+              "id": "w_007",
+              "name": "Chunky white sneakers",
+              "notes": null,
+              "style_tags": [
+                "sneakers",
+                "chunky",
+                "streetwear"
+              ]
+            },
+            {
+              "category": "shoes",
+              "colors": [
+                "black"
+              ],
+              "id": "w_008",
+              "name": "Black combat boots",
+              "notes": "Lace-up, mid-ankle height",
+              "style_tags": [
+                "boots",
+                "grunge",
+                "classic"
+              ]
+            },
+            {
+              "category": "accessories",
+              "colors": [
+                "brown"
+              ],
+              "id": "w_009",
+              "name": "Brown leather belt",
+              "notes": null,
+              "style_tags": [
+                "classic",
+                "earth tones",
+                "accessories"
+              ]
+            },
+            {
+              "category": "accessories",
+              "colors": [
+                "black"
+              ],
+              "id": "w_010",
+              "name": "Black crossbody bag",
+              "notes": null,
+              "style_tags": [
+                "minimal",
+                "accessories",
+                "everyday"
+              ]
+            }
+          ]
+        }
+      },
+      "status_code": 200,
+      "outcome": "stopped",
+      "error": "Nothing in the listings matched description 'designer ballgown', size XXS, under $5.\nThings to change: try broader words — 'jacket' finds more than 'cropped corduroy jacket'; drop the size, or try a neighbouring one; raise the price ceiling above $5.",
+      "duration_ms": 1402.489,
+      "queue_ms": 0.0,
+      "agent_ms": 1401.979,
+      "configured_model": "gemini-3.5-flash-lite",
+      "cache_enabled": false,
+      "model_usage": {
+        "model_attempts": 0,
+        "reported_prompt_tokens": 0,
+        "reported_output_tokens": 0,
+        "reported_total_tokens": 0
+      }
+    }
+  ]
+}

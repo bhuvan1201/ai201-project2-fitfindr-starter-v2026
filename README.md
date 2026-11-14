@@ -571,7 +571,7 @@ The logger supports the existing single-worker service. File persistence across 
 
 ### Hosted run path — deployment checks
 
-I chose Vercel. The service is at **https://fitfindr-capstone.vercel.app**, with the health route at **https://fitfindr-capstone.vercel.app/health**. `RUNNING.md` has the installation and deployment commands. The Gemini key is a private production secret; it is excluded from source uploads and Git.
+I chose Vercel. The service is at **https://fitfindr-capstone.vercel.app**, with the health route at **https://fitfindr-capstone.vercel.app/health**. It was deployed through the Vercel CLI; GitHub push does not automatically deploy this project. `RUNNING.md` has the installation and deployment commands. The Gemini key is a private production secret; it is excluded from source uploads and Git.
 
 Two setup problems showed up on the host. First, Vercel installed from `pyproject.toml` instead of `requirements.txt`, so the initial function could not import `dotenv`. The deployment manifest now includes the same 48 exact package pins as the local constraints file. Second, the MCP child interpreter could not import `mcp`, even though the Flask process could. `mcp_client.py::_server_parameters` now explicitly passes the parent's Python import paths to the child. This is a runtime setup change; the search rules and tool outputs are unchanged.
 
@@ -585,7 +585,7 @@ After those fixes, these unauthenticated requests to the production URL were che
 
 The actual client responses, request IDs and matching application records are in [deployment smoke evidence](results/capstone_deployment_smoke.json); the [raw Vercel runtime export](results/capstone_deployment_smoke_runtime.jsonl) also retains the observed setup errors. These are deployment checks, not the formal three-trial results. The saved application records report zero model attempts, and no Gemini-generated outfit was requested. The model-dependent happy path and measured cost have not been checked yet.
 
-**Clean-checkout verification:** pending.
+**Clean-checkout verification:** passed at `994e563`. I cloned the committed local repository into a separate temporary folder, installed `requirements.txt` in a new Python 3.13 environment, and started `serve.py` outside the editor. HTTP health and a real MCP empty search passed, both records were saved, and the checkout stayed clean. These checks used a temporary port and log path with no Gemini key. [Verification record](results/capstone_clean_checkout_check.json). The revision has not yet been pushed, so a fresh GitHub clone will not contain this setup until it is pushed.
 
 **Still needed for the run-path milestone:** the ten real model runs, their average measured elapsed time and reported token usage, and at least ten pasted log entries including a failure. The five capstone criteria must be written unaided and committed before formal evaluation; the earlier Unit 3/4 criteria are not replacements.
 

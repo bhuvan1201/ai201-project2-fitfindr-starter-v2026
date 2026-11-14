@@ -119,7 +119,7 @@ Useful flags on `ask`:
 
 ## Capstone — Vercel (Shape A, Path A)
 
-**Public API:** https://fitfindr-capstone.vercel.app. Verified without Vercel authentication: `/health` returns 200; MCP empty search returns guidance; missing query returns 400. Request records were recovered from runtime logs. The model-dependent happy path, clean-checkout verification and ten-run cost evidence are still pending.
+**Public API:** https://fitfindr-capstone.vercel.app. Verified without Vercel authentication: `/health` returns 200; MCP empty search returns guidance; missing query returns 400. Request records were recovered from runtime logs. Clean local-checkout verification passed at `994e563` using a new Python 3.13 environment; its record is in `results/capstone_clean_checkout_check.json`. The model-dependent happy path and ten-run cost evidence are still pending. Push the new capstone commits before following the GitHub clone command below; they were not yet on the remote when checked.
 
 ### Environment and installation
 
@@ -159,7 +159,7 @@ The second request uses the real model and can consume API quota. The existing `
 
 The Flask app is exported as `serve:app` in `pyproject.toml`, so Vercel does not mistake the existing CLI `app.py` for the web entrypoint. Vercel runs the WSGI app itself; no Gunicorn start-command override is needed. `vercel.json` selects Flask and a 300-second maximum function duration; that limit is configuration, not a measured response-time promise.
 
-Use the checked CLI version, then select your own account and the FitFindr project:
+Deployment currently uses the CLI; GitHub auto-deploy is not configured. Use the checked CLI version, then select your own account and the FitFindr project:
 
 ```bash
 npx --yes vercel@65.16.0 login
