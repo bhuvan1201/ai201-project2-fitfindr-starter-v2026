@@ -137,7 +137,23 @@ Logging is a main part of my capstone extension. Without the input, output, stat
 
 ### 3. Warm hosted response time
 
+**Original criterion (retained):**
+
 After one warm-up request, at least 4 of 5 sequential matching /ask requests return an outfit suggestion and fit card within 45 seconds each, measured from the client.
+
+**Clarified criterion — before formal evaluation:**
+
+In each trial, send one uncached warm-up request to the public `POST /ask` endpoint with `{"query":"90s track jacket in size M"}`, then send exactly five sequential uncached requests with the same body. At least 4 of those 5 measured requests must return HTTP 200 with a non-empty outfit suggestion and a non-empty fit card within 45 seconds each. Measure each request from immediately before sending it until its complete response body has been received, using a monotonic client clock.
+
+**How I will check:**
+
+- Save the warm-up response or error separately and exclude it from the five measured requests and their score. Do not repeat the warm-up if it fails; record that outcome and continue with the five measured requests.
+- Wait 10 seconds after the warm-up attempt and between measured requests. These pauses are outside the timed requests. API waits and retries within a request stay inside its measured time.
+- A measured request fails if it returns an HTTP or transport error, times out, lacks either generated output, or takes more than 45 seconds. Do not replace a failed request.
+- Record all request IDs, responses and timings. This defines warm-up as one preceding request; it does not guarantee that Vercel routes later requests to the same function instance. Any later initialization delay remains in the measured time.
+
+**Why clarified:** The original sentence left the query, warm-up and timing boundaries unspecified. This fixes the measurement procedure while keeping the target at 4 of 5 within 45 seconds.
+
 
 **Why this target:**
 
@@ -145,7 +161,23 @@ FitFindr performs an MCP search followed by two model calls, so I expect generat
 
 ### 4. Reported model usage
 
+**Original criterion (retained):**
+
 For all 5 uncached requests that successfully generate an outfit and fit card, the corresponding log records show at least two model attempts and a reported total token count greater than zero.
+
+**Clarified criterion — before formal evaluation:**
+
+In each trial, send exactly five uncached requests to the public `POST /ask` endpoint with `{"query":"90s track jacket in size M"}`. All 5 must return HTTP 200 with a non-empty outfit suggestion and a non-empty fit card, and each corresponding log record must show `cache_enabled: false`, `model_usage.model_attempts >= 2`, and `model_usage.reported_total_tokens > 0`. A failed or incomplete response, a missing matching log record, or a counter below its threshold fails that request. The target is 5 of 5; do not send replacement requests to obtain five successes.
+
+**How I will check:**
+
+- Match each response's `X-Request-ID` to its recovered application record and inspect that request's usage fields.
+- Keep all five attempts, including errors and timeouts. The five measured requests from criterion 3 may also supply criteria 1 and 4; its warm-up request is excluded from all three scores.
+- Give a request a pass only when its completed response, disabled cache and recorded usage all meet the stated conditions. Fewer than five passing requests means the trial is MISSED, rather than counting only the successful subset as 5/5.
+- Distinguish causes when diagnosing a miss: an unsuccessful generation can prevent the five required successful observations even if its usage was logged correctly. A missing record or incorrect usage counter is a separate instrumentation failure.
+
+**Why clarified:** The original wording assumed five successful requests without defining how failed attempts would affect the sample. A fixed five-request batch prevents replacing failures until the target passes. The 5-of-5 target and usage thresholds are unchanged; completion is now an explicit prerequisite for each of the five observations.
+
 
 **Why this target:**
 

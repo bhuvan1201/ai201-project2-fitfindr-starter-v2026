@@ -591,7 +591,7 @@ The actual client responses, request IDs and matching application records are in
 
 ### Acceptance Criteria
 
-The five capstone criteria and their reasons are recorded in [criteria.md — Capstone](criteria.md#capstone--shape-a-deploy-and-instrument). The earlier Unit 3/4 criteria remain in their original section. The [testability review](notes/capstone_criteria_review.md) records how each can be checked and which measurement choices need to be fixed before evaluation.
+The five capstone criteria and their reasons are recorded in [criteria.md — Capstone](criteria.md#capstone--shape-a-deploy-and-instrument). The earlier Unit 3/4 criteria remain in their original section. The [testability review](notes/capstone_criteria_review.md) records the fixed query, warm-up, timing and sampling rules. Criteria 3 and 4 retain their original sentences with explicit clarifications underneath; their numerical targets are unchanged.
 
 <!-- capstone-milestone3-measurements -->
 
