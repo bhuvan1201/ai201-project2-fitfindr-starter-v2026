@@ -1,0 +1,10 @@
+{
+  "purpose": "Milestone 3 operational measurement, not formal acceptance trials",
+  "collector_checkout_revision": null,
+  "base_url": "https://fitfindr-capstone.vercel.app",
+  "query": "90s track jacket in size M",
+  "count": 10,
+  "pause_seconds": 10.0,
+  "timeout_seconds": 310,
+  "warm_up": "None; the first request is included. Host cold/warm state is not asserted."
+}

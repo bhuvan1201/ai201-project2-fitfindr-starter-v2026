@@ -119,7 +119,7 @@ Useful flags on `ask`:
 
 ## Capstone — Vercel (Shape A, Path A)
 
-**Public API:** https://fitfindr-capstone.vercel.app. Verified without Vercel authentication: `/health` returns 200; MCP empty search returns guidance; missing query returns 400. Request records were recovered from runtime logs. Clean local-checkout verification passed at `994e563` using a new Python 3.13 environment; its record is in `results/capstone_clean_checkout_check.json`. The model-dependent happy path and ten-run cost evidence are still pending. Push the new capstone commits before following the GitHub clone command below; they were not yet on the remote when checked.
+**Public API:** https://fitfindr-capstone.vercel.app. Verified without Vercel authentication: `/health` returns 200; MCP empty search returns guidance; missing query returns 400. Request records were recovered from runtime logs. Clean local-checkout verification passed at `994e563` using a new Python 3.13 environment; its record is in `results/capstone_clean_checkout_check.json`. The ten-run hosted measurement is now recorded in `results/capstone_m3/summary.json`: 10/10 completed outfits, 11 recovered records including the rejected-input example, and 20 model attempts. Formal three-trial criteria evaluation is still pending. Push the new capstone commits before following the GitHub clone command below; they were not yet on the remote when checked.
 
 ### Environment and installation
 
@@ -189,6 +189,8 @@ Vercel's `/tmp` file is temporary and belongs to one function instance. It is no
 mkdir -p results
 npx --yes vercel@65.16.0 logs --environment production --since 30m --json > results/capstone_vercel_runtime_logs.jsonl
 ```
+
+Vercel Hobby retains runtime logs for one hour. Export immediately with `--since 30m`; requesting a two-hour window is rejected. A failed CLI export can leave an empty redirected file. Check its exit status and recover logs before repeating model requests.
 
 Keep the raw export, extract the actual application JSON records, and commit the evidence in the same session. Paste at least ten real request records into the README, including a failure. Do not use development fixtures as evidence.
 

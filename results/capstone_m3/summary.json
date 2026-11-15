@@ -1,0 +1,23 @@
+{
+  "purpose": "Milestone 3 operational measurement, not formal acceptance trials",
+  "collector_checkout_revision": null,
+  "expected_measurements": 10,
+  "recorded_measurements": 10,
+  "completed_outfits": 10,
+  "incomplete_or_failed_outfits": 0,
+  "recovered_application_records": 11,
+  "missing_records": [],
+  "mean_client_elapsed_seconds": 2.90604,
+  "mean_server_elapsed_seconds": 2.67592,
+  "reported_usage_totals": {
+    "model_attempts": 20,
+    "reported_prompt_tokens": 11404,
+    "reported_output_tokens": 2600,
+    "reported_total_tokens": 14004
+  },
+  "mean_reported_total_tokens": 1400.4,
+  "zero_reported_tokens_despite_model_attempts": 0,
+  "measurement_issues": [],
+  "complete_evidence": true,
+  "method": "Sequential uncached matching attempts; no warm-up excluded; all attempted runs, including failures, remain in the averages. The rejected-input example is excluded from the cost sample. Client duration is wall time, including network and waits, not CPU time. Pauses between requests are excluded; waits within a request are included. Tokens are provider-reported adapter counters, not verified billing or API dollars."
+}

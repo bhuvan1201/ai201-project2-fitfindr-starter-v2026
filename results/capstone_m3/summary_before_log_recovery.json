@@ -1,0 +1,87 @@
+{
+  "purpose": "Milestone 3 operational measurement, not formal acceptance trials",
+  "collector_checkout_revision": null,
+  "expected_measurements": 10,
+  "recorded_measurements": 10,
+  "completed_outfits": 10,
+  "incomplete_or_failed_outfits": 0,
+  "recovered_application_records": 0,
+  "missing_records": [
+    {
+      "sequence": 1,
+      "request_id": "1c075cf5c5b44e99a0e71f9687590baa",
+      "http_status": 200,
+      "transport_error": null
+    },
+    {
+      "sequence": 2,
+      "request_id": "e009e86447404d128aa0c95dac0a5f59",
+      "http_status": 200,
+      "transport_error": null
+    },
+    {
+      "sequence": 3,
+      "request_id": "7facc54f28d248f295280658eb15e77a",
+      "http_status": 200,
+      "transport_error": null
+    },
+    {
+      "sequence": 4,
+      "request_id": "c617540a8e034364bcce782234c53fed",
+      "http_status": 200,
+      "transport_error": null
+    },
+    {
+      "sequence": 5,
+      "request_id": "84fc6d97ba764efab49cd16591f11596",
+      "http_status": 200,
+      "transport_error": null
+    },
+    {
+      "sequence": 6,
+      "request_id": "183a209bfa344e7fb2141d372a3066a3",
+      "http_status": 200,
+      "transport_error": null
+    },
+    {
+      "sequence": 7,
+      "request_id": "da349cb4b3fa47238be8a7a14b9a6d8d",
+      "http_status": 200,
+      "transport_error": null
+    },
+    {
+      "sequence": 8,
+      "request_id": "11ab596096c9420bb569f90482787d86",
+      "http_status": 200,
+      "transport_error": null
+    },
+    {
+      "sequence": 9,
+      "request_id": "e5043aaeb92e4dc0ac49afee1e2b059a",
+      "http_status": 200,
+      "transport_error": null
+    },
+    {
+      "sequence": 10,
+      "request_id": "5b6b515e886f4f80b22aafc44c56eeba",
+      "http_status": 200,
+      "transport_error": null
+    },
+    {
+      "sequence": 11,
+      "request_id": "4c903db4923d4cf29b41f38249c4a91a",
+      "http_status": 400,
+      "transport_error": null
+    }
+  ],
+  "mean_client_elapsed_seconds": 2.90604,
+  "mean_server_elapsed_seconds": null,
+  "reported_usage_totals": null,
+  "mean_reported_total_tokens": null,
+  "zero_reported_tokens_despite_model_attempts": 0,
+  "measurement_issues": [
+    "11 client responses lack recovered application records."
+  ],
+  "complete_evidence": false,
+  "method": "Sequential uncached matching attempts; no warm-up excluded; all attempted runs, including failures, remain in the averages. The rejected-input example is excluded from the cost sample. Client duration is wall time, including network and waits, not CPU time. Pauses between requests are excluded; waits within a request are included. Tokens are provider-reported adapter counters, not verified billing or API dollars."
+}
