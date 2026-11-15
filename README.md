@@ -786,6 +786,33 @@ Matching original stderr line:
 
 The [machine-readable summary](results/capstone_before/summary.json) and [generated report](results/capstone_before/report.md) retain the complete counts and assessments. The original Milestone 3 ten-run cost measurement remains separate from this formal baseline.
 
+<!-- capstone-milestone6 -->
+
+### Verdicts and diagnosis
+
+All five criteria were MET in all three baseline trials, as shown in Run Log — Before. There is no missed criterion to assign to a failing stage.
+
+My targets were basic in some places. Criterion 1 checks whether the workflow finishes, without checking the quality of the outfit. Criterion 4 checks that usage is reported, without checking its billing accuracy. Criterion 5 checks one controlled local log-path fault. Passing these checks does not cover every failure the hosted service could have.
+
+The clearest target I would tighten in a future version is criterion 3: from at least 4 of 5 responses within 45 seconds to at least 4 of 5 within 10 seconds. The first trial took 17.623–21.377 seconds per measured request, which the current target accepts even though that wait would be noticeable to a user. This is a proposed future standard; the actual criterion stays at 45 seconds for the before-and-after comparison.
+
+One operational weakness did show up while collecting evidence. The first log export recovered 10/10 required records in trial 1, then only 4/10 in trial 2 and 4/10 in trial 3: 18/30 altogether. The missing records belonged to the last outfit request and the health requests. Their responses reported saved logs, and a later export recovered the matching records without repeating any requests.
+
+The stage was the export and verification step. Its mechanism was a one-shot fetch that accepted a successful CLI exit without checking whether all expected request IDs were actually present. The observed records became available to a later fetch; these results do not establish the precise internal platform cause. Manual recovery completed the final baseline, so the initial incomplete exports are not being counted as failed application trials. The preserved files and [recovery note](results/capstone_before/export_recovery.md) show that history.
+
+### The Improvement — verified log capture
+
+I am changing one part of the operational layer: the log-export step. `tools/evaluate_capstone.py export-logs` now compares recovered records with the ten required request IDs for that trial: five measured outfit requests and five health requests. It checks their inputs, outputs and HTTP statuses too. Warm-up records are retained when available but excluded from that ten-record target.
+
+If records are missing, the command fetches existing logs again, up to six attempts with five seconds between attempts. It never repeats an outfit request. Each raw export, CLI stderr and attempt count is saved, and the command only reports completion after the matching records are written to the evidence file. If it reaches the limit, it returns an error and preserves the partial capture.
+
+I expect this to reduce the manual recovery needed after an immediate export. I will compare record coverage when the configured capture step finishes: the before workflow captured 18/30 required records at that point; the after result has not been measured yet. I will also report the number of export attempts and any manual reinvocation. This additional capture measure does not replace or change the five acceptance criteria.
+
+The tradeoff is extra log queries and waiting when records are not available immediately. This happens after the application requests, outside their measured response times. This change is not expected to make outfit generation faster, and a faster after-run would not by itself prove that the exporter caused it.
+
+**After testing is pending.** I will rerun all five criteria three times with the same query, targets, request counts, cache setting and local failure procedure. New evidence will go into `results/capstone_after/`; the committed before evidence stays unchanged. The after table and conclusion about whether this helped will be added only after those real runs.
+
+
 ---
 
 📖 **How to run this project: [RUNNING.md](RUNNING.md)**

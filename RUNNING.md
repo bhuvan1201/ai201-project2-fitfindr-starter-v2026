@@ -202,6 +202,32 @@ For the required cost number, measure ten real runs and report their mean elapse
 
 ---
 
+
+### Formal after trials and verified log export
+
+The Milestone 6 change is in the local evidence-capture workflow. The hosted agent, prompts, application logging and criteria are unchanged, so this change does not require redeploying the API. Commit the updated evaluation tool before collecting; its preflight checks enforce committed inputs and a frozen plan across the three trials.
+
+With the documented Python environment active, repeat these two commands for trials 1, 2 and 3:
+
+```bash
+python tools/evaluate_capstone.py collect --label after --trial 1 --out results/capstone_after
+python tools/evaluate_capstone.py export-logs --trial 1 --out results/capstone_after
+```
+
+The second command checks the five measured request IDs and five health request IDs against recovered application records. It uses the existing Vercel account with CLI 65.16.0 and a 30-minute window. It retries only log retrieval, with a limit of six attempts per invocation and a five-second delay. Raw snapshots, stderr and `log_export_audit.json` record the attempts and completeness. The three warm-ups across the trials stay outside the acceptance scores.
+
+If capture fails, preserve its audit and investigate. Additional log-export attempts do not resend model requests. Each new explicit invocation is recorded; do not rerun the outfit collection to replace missing logs or failed responses.
+
+After all three trials and their exports:
+
+```bash
+python tools/evaluate_capstone.py summarize --out results/capstone_after
+```
+
+This writes an After report and summary with the original scoring rules plus capture-completeness statistics. It does not change the README. The committed `results/capstone_before/` files are the comparison baseline and must be preserved.
+
+---
+
 ## Where everything lives
 
 | File | What it does |

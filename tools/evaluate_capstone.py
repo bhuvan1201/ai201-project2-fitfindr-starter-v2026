@@ -17,6 +17,10 @@ from measure_capstone import QUERY, application_records, completed, read_json, r
 
 ROOT = Path(__file__).resolve().parents[1]
 PAUSE = 10
+EXPORT_POLICY = {'name': 'verified-export-v1', 'max_attempts_per_invocation': 6,
+                 'retry_delay_seconds': 5, 'query_window': '30m',
+                 'cli_version': '65.16.0', 'project': 'fitfindr-capstone',
+                 'scope': 'bhuvan-gowda', 'required_kinds': ['ask', 'health']}
 RUNTIME = ('serve.py', 'config.py', 'run_log.py', 'agent.py', 'tools.py', 'generate.py',
            'mcp_client.py', 'mcp_server.py', 'utils/data_loader.py', 'data/listings.json',
            'data/wardrobe_schema.json', 'requirements.txt', 'requirements.lock',
@@ -43,12 +47,18 @@ def git(*args):
 def preflight(args):
     git('ls-files', '--error-unmatch', '--', *FROZEN)
     git('diff', '--exit-code', 'HEAD', '--', *FROZEN)
-    plan = {'purpose': 'Formal capstone baseline evaluation', 'query': QUERY,
+    label = getattr(args, 'label', 'before')
+    plan = {'purpose': f'Formal capstone {label} evaluation', 'label': label,
+            'export_policy': EXPORT_POLICY, 'query': QUERY,
             'base_url': args.base_url.rstrip('/'), 'measured_requests_per_trial': 5,
             'warmups_per_trial': 1, 'health_requests_per_trial': 5,
             'local_fault_requests_per_trial': 10, 'pause_seconds': PAUSE,
             'hosted_ask_timeout_seconds': 310, 'health_timeout_seconds': 30,
             'file_sha256': {name: digest(ROOT / name) for name in FROZEN}}
+    if label == 'after':
+        baseline = read_json(ROOT / 'results/capstone_before/evaluation_plan.json')
+        if plan['file_sha256']['criteria.md'] != baseline['file_sha256']['criteria.md']:
+            raise ValueError('After trials must use the exact committed before criteria. The proposed future 10-second target is not used for this comparison.')
     args.out.mkdir(parents=True, exist_ok=True)
     path = args.out / 'evaluation_plan.json'
     if path.exists():
@@ -130,7 +140,7 @@ def collect(args):
     revision, criteria_hash = preflight(args)
     folder = args.out / f'trial{args.trial}'
     folder.mkdir(exist_ok=False)
-    metadata = {'purpose': 'Formal capstone trial', 'trial': args.trial,
+    metadata = {'purpose': 'Formal capstone trial', 'label': getattr(args, 'label', 'before'), 'trial': args.trial,
                 'collector_checkout_revision': revision, 'criteria_sha256': criteria_hash,
                 'started_at': dt.datetime.now(dt.timezone.utc).isoformat(),
                 'finished': False, 'query': QUERY,
@@ -153,7 +163,100 @@ def collect(args):
                         context, method='GET', timeout=30)
     metadata.update(finished=True, finished_at=dt.datetime.now(dt.timezone.utc).isoformat())
     write_json(folder / 'metadata.json', metadata)
-    print(f'Saved {folder}. Export Vercel logs into {folder / "vercel_runtime.jsonl"} now using --since 30m.', flush=True)
+    print(f'Saved {folder}. Run export-logs --out {args.out} --trial {args.trial} now; model requests will not be repeated.', flush=True)
+
+
+def export_logs(args):
+    """Fetch existing logs with bounded retries; never resend application requests."""
+    folder = args.out / f'trial{args.trial}'
+    plan = read_json(args.out / 'evaluation_plan.json')
+    metadata = read_json(folder / 'metadata.json')
+    if plan.get('export_policy') != EXPORT_POLICY:
+        raise ValueError('This capture command requires the new verified-export plan. Preserve the committed before evidence.')
+    if not metadata.get('finished') or metadata['trial'] != args.trial:
+        raise ValueError('Complete the selected trial before exporting its logs.')
+    rows = [json.loads(line) for line in (folder / 'client_requests.jsonl').read_text(encoding='utf-8').splitlines() if line.strip()]
+    required = [row for row in rows if row['kind'] in EXPORT_POLICY['required_kinds']]
+    hosted = [row for row in rows if row['kind'] in ('warmup', 'ask', 'health')]
+    if len(required) != 10:
+        raise ValueError('The fixed trial must contain five measured asks and five health requests.')
+    canonical = folder / 'vercel_runtime.jsonl'
+    records = application_records(canonical) if canonical.exists() and canonical.stat().st_size else {}
+    audit_path = folder / 'log_export_audit.json'
+    audit = read_json(audit_path) if audit_path.exists() else {
+        'policy': EXPORT_POLICY, 'trial': args.trial, 'attempts': [], 'export_invocations': 0,
+        'required_records': len(required), 'model_requests_repeated': 0}
+    if audit.get('policy') != EXPORT_POLICY:
+        raise ValueError('Existing export audit uses a different policy; preserve it.')
+
+    def coverage():
+        missing = []
+        for row in required:
+            if matching_log(row, records) is None:
+                missing.append({'kind': row['kind'], 'slot': row['slot'], 'request_id': row['request_id']})
+        return len(required) - len(missing), missing
+
+    recovered, missing = coverage()
+    if not missing:
+        print(f'Trial {args.trial}: existing export already covers all 10 required requests; kept unchanged.')
+        return
+    attempt_dir = folder / 'export_attempts'
+    attempt_dir.mkdir(exist_ok=True)
+    command = ['npx', '--yes', 'vercel@' + EXPORT_POLICY['cli_version'], 'logs',
+               '--project', EXPORT_POLICY['project'], '--scope', EXPORT_POLICY['scope'],
+               '--environment', 'production', '--since', EXPORT_POLICY['query_window'],
+               '--limit', '1000', '--json']
+    audit['export_invocations'] += 1
+    started = time.monotonic()
+    for local_attempt in range(1, EXPORT_POLICY['max_attempts_per_invocation'] + 1):
+        attempt_number = len(audit['attempts']) + 1
+        runtime_path = attempt_dir / f'attempt{attempt_number:03d}_runtime.jsonl'
+        stderr_path = attempt_dir / f'attempt{attempt_number:03d}_stderr.txt'
+        attempt = {'attempt': attempt_number, 'invocation': audit['export_invocations'],
+                   'started_at': dt.datetime.now(dt.timezone.utc).isoformat(),
+                   'command': command, 'runtime_export': str(runtime_path.relative_to(args.out)),
+                   'stderr_file': str(stderr_path.relative_to(args.out))}
+        tick = time.monotonic()
+        try:
+            with runtime_path.open('x', encoding='utf-8') as stdout, stderr_path.open('x', encoding='utf-8') as stderr:
+                result = subprocess.run(command, cwd=ROOT, stdout=stdout, stderr=stderr,
+                                        timeout=60, env={**os.environ, 'VERCEL_TELEMETRY_DISABLED': '1'})
+            attempt['returncode'] = result.returncode
+            if result.returncode:
+                raise ValueError(f'Vercel CLI exited {result.returncode}; inspect the saved stderr.')
+            snapshot = application_records(runtime_path)
+            attempt['snapshot_required_records'] = sum(matching_log(row, snapshot) is not None for row in required)
+            candidate = dict(records)
+            for row in hosted:
+                record = matching_log(row, snapshot)
+                if record is None:
+                    continue
+                key = row['request_id']
+                if key in candidate and candidate[key] != record:
+                    raise ValueError(f'Conflicting captured record for {key}')
+                candidate[key] = record
+            ordered = [candidate[row['request_id']] for row in hosted if row['request_id'] in candidate]
+            temporary = folder / 'vercel_runtime_pending.jsonl'
+            temporary.write_text(''.join(json.dumps(record, ensure_ascii=False, allow_nan=False) + '\n' for record in ordered), encoding='utf-8')
+            temporary.replace(canonical)
+            records = candidate
+        except (OSError, ValueError, subprocess.SubprocessError) as exc:
+            attempt['error'] = f'{type(exc).__name__}: {exc}'
+        recovered, missing = coverage()
+        attempt.update(elapsed_seconds=round(time.monotonic() - tick, 3),
+                       cumulative_required_records=recovered, missing_records=missing)
+        audit['attempts'].append(attempt)
+        audit.update(recovered_required_records=recovered, complete=not missing,
+                     missing_records=missing,
+                     latest_invocation_elapsed_seconds=round(time.monotonic() - started, 3))
+        write_json(audit_path, audit)
+        print(f'Trial {args.trial}: log export attempt {attempt_number}: {recovered}/10 required records captured.', flush=True)
+        if not missing:
+            print(f'Verified capture saved in {canonical}; raw attempts and stderr retained. No model requests repeated.', flush=True)
+            return
+        if local_attempt < EXPORT_POLICY['max_attempts_per_invocation']:
+            time.sleep(EXPORT_POLICY['retry_delay_seconds'])
+    raise ValueError('Verified export reached its retry limit with missing records. Preserve the audit and raw attempts. Retry only export-logs after investigating; do not repeat model collection.')
 
 
 def generated(row):
@@ -280,7 +383,20 @@ def summarize(args):
         table.append(f'| {i}. {NAMES[i]} | {TARGETS[i][0]} of {TARGETS[i][1]} | '
                      + ' | '.join(f'{score["passed"]}/{score["total"]}' for score in scores)
                      + f' | {verdict} |')
-    lines = ['### Run Log — Before', '',
+    label = plan.get('label', 'before')
+    if any(read_json(args.out / f'trial{number}' / 'metadata.json').get('label', 'before') != label for number in (1, 2, 3)):
+        raise ValueError('Trial labels do not match the run plan; before evidence cannot be relabeled as after.')
+    capture = []
+    for number in (1, 2, 3):
+        audit_path = args.out / f'trial{number}' / 'log_export_audit.json'
+        if audit_path.exists():
+            audit = read_json(audit_path)
+            capture.append({'trial': number, 'required_records': audit['required_records'],
+                            'recovered_required_records': audit['recovered_required_records'],
+                            'export_attempts': len(audit['attempts']),
+                            'export_invocations': audit['export_invocations'],
+                            'complete': audit['complete']})
+    lines = [f'### Run Log — {label.title()}', '',
              'Three formal trials with unchanged code and criteria. Criteria 1, 3 and 4 share each trial\'s five measured outfit requests; the one warm-up attempt is excluded. Criterion 2 uses five hosted health requests per trial. Criterion 5 uses ten health requests per trial in an isolated local instance with an invalid log destination.', '',
              *table, '', 'These counts check the stated response/log conditions; they do not judge outfit quality or establish accurate API billing.', '']
     producers = {1: 'agent.py::run_agent, returned over HTTP by serve.py::ask',
@@ -296,10 +412,12 @@ def summarize(args):
                   '```json', json.dumps(example, ensure_ascii=False, indent=2), '```', '']
     lines += ['All responses, logs, stderr captures and per-request assessments remain in the trial folders. This report is a draft artifact; the README has not been edited.', '']
     (args.out / 'report.md').write_text('\n'.join(lines), encoding='utf-8')
-    write_json(args.out / 'summary.json', {'purpose': 'Formal three-trial baseline evaluation',
-               'verdicts': verdicts, 'trials': [{'trial': t['trial'], 'scores': t['scores'],
+    write_json(args.out / 'summary.json', {'purpose': f'Formal three-trial {label} evaluation',
+               'label': label, 'log_capture': capture, 'verdicts': verdicts, 'trials': [{'trial': t['trial'], 'scores': t['scores'],
                     'missing_hosted_records': t['missing_hosted_records']} for t in trials]})
     print('\n'.join(table))
+    for entry in capture:
+        print(f'Trial {entry["trial"]}: verified log capture {entry["recovered_required_records"]}/{entry["required_records"]}, {entry["export_attempts"]} export attempts across {entry["export_invocations"]} invocation(s).')
     for trial in trials:
         if trial['missing_hosted_records']:
             print(f'Trial {trial["trial"]}: {len(trial["missing_hosted_records"])} hosted records were not recovered. Check export timing, pagination and the actual server behavior before diagnosing.')
@@ -313,7 +431,12 @@ def main():
     command.add_argument('--out', type=Path, required=True)
     command.add_argument('--trial', type=int, choices=(1, 2, 3), required=True)
     command.add_argument('--base-url', default='https://fitfindr-capstone.vercel.app')
+    command.add_argument('--label', choices=('before', 'after'), default='before')
     command.set_defaults(action=collect)
+    command = commands.add_parser('export-logs', help='Capture existing Vercel records with bounded retries; never resend model requests.')
+    command.add_argument('--out', type=Path, required=True)
+    command.add_argument('--trial', type=int, choices=(1, 2, 3), required=True)
+    command.set_defaults(action=export_logs)
     command = commands.add_parser('summarize', help='Tally all three trials after each runtime export is saved; never edit README.')
     command.add_argument('--out', type=Path, required=True)
     command.set_defaults(action=summarize)
