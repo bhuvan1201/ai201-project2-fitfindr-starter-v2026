@@ -1,0 +1,11 @@
+{
+  "scope": "Isolated local instance; public Vercel configuration unchanged",
+  "fault": "Log destination has a regular file as its parent",
+  "command": [
+    "/Users/bhuvan/.venvs/fitfindr-capstone-py313/bin/python",
+    "serve.py"
+  ],
+  "port": 57069,
+  "log_destination": "/var/folders/9g/v18s588943g4v58_2hbz9vyc0000gn/T/fitfindr-log-fault-uzbchkhd/regular_file_not_directory/runs.jsonl",
+  "ready": true
+}

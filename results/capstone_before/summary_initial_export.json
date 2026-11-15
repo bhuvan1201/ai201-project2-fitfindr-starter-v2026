@@ -1,0 +1,197 @@
+{
+  "purpose": "Formal three-trial baseline evaluation",
+  "verdicts": {
+    "1": "MET",
+    "2": "MISSED",
+    "3": "MET",
+    "4": "MISSED",
+    "5": "MET"
+  },
+  "trials": [
+    {
+      "trial": 1,
+      "scores": {
+        "1": {
+          "criterion": "Hosted completion",
+          "passed": 5,
+          "total": 5,
+          "required": 4,
+          "verdict": "MET"
+        },
+        "2": {
+          "criterion": "Recoverable health logs",
+          "passed": 5,
+          "total": 5,
+          "required": 5,
+          "verdict": "MET"
+        },
+        "3": {
+          "criterion": "Response within 45 seconds",
+          "passed": 5,
+          "total": 5,
+          "required": 4,
+          "verdict": "MET"
+        },
+        "4": {
+          "criterion": "Completed output and reported usage",
+          "passed": 5,
+          "total": 5,
+          "required": 5,
+          "verdict": "MET"
+        },
+        "5": {
+          "criterion": "Visible logging failure",
+          "passed": 10,
+          "total": 10,
+          "required": 10,
+          "verdict": "MET"
+        }
+      },
+      "missing_hosted_records": []
+    },
+    {
+      "trial": 2,
+      "scores": {
+        "1": {
+          "criterion": "Hosted completion",
+          "passed": 5,
+          "total": 5,
+          "required": 4,
+          "verdict": "MET"
+        },
+        "2": {
+          "criterion": "Recoverable health logs",
+          "passed": 0,
+          "total": 5,
+          "required": 5,
+          "verdict": "MISSED"
+        },
+        "3": {
+          "criterion": "Response within 45 seconds",
+          "passed": 4,
+          "total": 5,
+          "required": 4,
+          "verdict": "MET"
+        },
+        "4": {
+          "criterion": "Completed output and reported usage",
+          "passed": 4,
+          "total": 5,
+          "required": 5,
+          "verdict": "MISSED"
+        },
+        "5": {
+          "criterion": "Visible logging failure",
+          "passed": 10,
+          "total": 10,
+          "required": 10,
+          "verdict": "MET"
+        }
+      },
+      "missing_hosted_records": [
+        {
+          "kind": "ask",
+          "slot": 5,
+          "request_id": "8d250572059043068b24d54c2eb3090f"
+        },
+        {
+          "kind": "health",
+          "slot": 1,
+          "request_id": "4712394962dc4a1bbdb86900f35cb949"
+        },
+        {
+          "kind": "health",
+          "slot": 2,
+          "request_id": "a5294bdcc6d2407a8401e45d31906d13"
+        },
+        {
+          "kind": "health",
+          "slot": 3,
+          "request_id": "207f6e8fdd9145408f4875bf30f4b278"
+        },
+        {
+          "kind": "health",
+          "slot": 4,
+          "request_id": "f864c66ffcea4798a468123552c9f973"
+        },
+        {
+          "kind": "health",
+          "slot": 5,
+          "request_id": "77ff786dc47042c6a8b625a89716c667"
+        }
+      ]
+    },
+    {
+      "trial": 3,
+      "scores": {
+        "1": {
+          "criterion": "Hosted completion",
+          "passed": 5,
+          "total": 5,
+          "required": 4,
+          "verdict": "MET"
+        },
+        "2": {
+          "criterion": "Recoverable health logs",
+          "passed": 0,
+          "total": 5,
+          "required": 5,
+          "verdict": "MISSED"
+        },
+        "3": {
+          "criterion": "Response within 45 seconds",
+          "passed": 4,
+          "total": 5,
+          "required": 4,
+          "verdict": "MET"
+        },
+        "4": {
+          "criterion": "Completed output and reported usage",
+          "passed": 4,
+          "total": 5,
+          "required": 5,
+          "verdict": "MISSED"
+        },
+        "5": {
+          "criterion": "Visible logging failure",
+          "passed": 10,
+          "total": 10,
+          "required": 10,
+          "verdict": "MET"
+        }
+      },
+      "missing_hosted_records": [
+        {
+          "kind": "ask",
+          "slot": 5,
+          "request_id": "4fc8323ca9bf4adf81da48630f8e317d"
+        },
+        {
+          "kind": "health",
+          "slot": 1,
+          "request_id": "b2498b9746ee496ba929648ec1f6ad11"
+        },
+        {
+          "kind": "health",
+          "slot": 2,
+          "request_id": "7e5f168c82e04b6e9238d710a28af810"
+        },
+        {
+          "kind": "health",
+          "slot": 3,
+          "request_id": "ce79da9b32ad4898a03150ea14484d2b"
+        },
+        {
+          "kind": "health",
+          "slot": 4,
+          "request_id": "24dc0bbd009148e0b367d06f1d8d5d6b"
+        },
+        {
+          "kind": "health",
+          "slot": 5,
+          "request_id": "2e6e3e0ae180424b876ecf07fc9b813c"
+        }
+      ]
+    }
+  ]
+}

@@ -633,6 +633,159 @@ Usage records with model attempts but zero reported tokens: 0.
 
 Client responses, original runtime export, matched application records and the numeric summary are saved under `results/capstone_m3`.
 
+<!-- capstone-formal-baseline -->
+
+### Run Log — Before
+
+I ran all five criteria three times with the same committed code and criteria. Each trial used one hosted warm-up followed by five measured track-jacket requests. Those five requests supplied criteria 1, 3 and 4; the warm-up was excluded from their scores. Criterion 2 used five hosted health requests per trial. Criterion 5 used ten health requests per trial in a separate local instance with an invalid log destination, leaving the public service unchanged.
+
+All three trial records identify collector revision `8bbd9eb` and the same criteria hash. The frozen file hashes and test settings are in [the evaluation plan](results/capstone_before/evaluation_plan.json).
+
+| Criterion | Target | Run 1 | Run 2 | Run 3 | Verdict |
+|---|---|---|---|---|---|
+| 1. Hosted completion | 4 of 5 | 5/5 | 5/5 | 5/5 | MET |
+| 2. Recoverable health logs | 5 of 5 | 5/5 | 5/5 | 5/5 | MET |
+| 3. Response within 45 seconds | 4 of 5 | 5/5 | 5/5 | 5/5 | MET |
+| 4. Completed output and reported usage | 5 of 5 | 5/5 | 5/5 | 5/5 | MET |
+| 5. Visible logging failure | 10 of 10 | 10/10 | 10/10 | 10/10 | MET |
+
+All five targets were met in all three trials. This checks completion, recoverable records, the stated time limit, reported usage and the controlled logging-failure behavior. It does not establish outfit quality, accurate API billing or resilience to a real Vercel storage outage.
+
+**Log recovery:** The immediate exports for trials 2 and 3 omitted their last outfit record and five health records. A later read-only export recovered those same records, with inputs, outputs and statuses matching the original responses. No requests were repeated and no code or targets changed. The [recovery note](results/capstone_before/export_recovery.md) explains the original exports and initial incomplete tallies retained alongside the final baseline.
+
+**Repeated-run check:** The 15 measured requests have distinct request IDs and 15 different outfit/fit-card output pairs. Their records all show caching disabled, two model attempts each and positive reported token usage. The identical pass counts therefore do not come from reusing saved responses. These checks exclude the three warm-ups; see [the repetition check](results/capstone_before/repetition_check.json).
+
+**Observed response times:** Trial 1: 17.623–21.377 seconds; Trial 2: 2.491–2.720 seconds; Trial 3: 2.513–5.904 seconds. These ranges exclude warm-ups and the 10-second pauses between requests. Trial 1 was slower than the later trials, while all measured requests remained below 45 seconds. These observations alone do not establish the cause of the difference.
+
+The excerpts below select existing fields from the saved responses and application records. Values and generated text are unchanged. Full responses, stderr files, runtime exports and per-request assessments remain in [the baseline evidence](results/capstone_before/).
+
+**Criterion 1 — completed hosted response, trial 1, request 2.** Produced by `agent.py::run_agent`, returned by `serve.py::ask`, and captured by `tools/measure_capstone.py::request_once`. Source: [client responses](results/capstone_before/trial1/client_requests.jsonl).
+
+```json
+{
+  "trial": 1,
+  "slot": 2,
+  "http_status": 200,
+  "request_id": "b460aa161a9a4a61ac92390d6685f9db",
+  "response": {
+    "selected_item": {
+      "brand": "Champion",
+      "category": "outerwear",
+      "colors": [
+        "navy",
+        "white"
+      ],
+      "condition": "excellent",
+      "description": "Authentic 90s track jacket with stripe detail down the sleeves. Full zip. Lightweight — great for layering.",
+      "id": "lst_004",
+      "platform": "poshmark",
+      "price": 45.0,
+      "size": "M",
+      "style_tags": [
+        "90s",
+        "vintage",
+        "athletic",
+        "streetwear"
+      ],
+      "title": "90s Track Jacket — Navy/White Stripe"
+    },
+    "outfit_suggestion": "**Outfit 1: 90s Streetwear**\n*   **Pieces:** 90s Track Jacket, White ribbed tank top, Baggy straight-leg jeans, Chunky white sneakers.\n*   **Why it works:** The white ribbed tank layers perfectly under the lightweight track jacket. Pairing it with baggy dark-wash jeans and chunky white sneakers leans into a cohesive 90s streetwear aesthetic, with the white sneakers tying in the jacket's white stripes.\n*   *Suggested addition:* Silver hoop earrings.\n\n**Outfit 2: High-Low Casual**\n*   **Pieces:** 90s Track Jacket, White ribbed tank top, Wide-leg khaki trousers, Chunky white sneakers.\n*   **Why it works:** The sporty navy-and-white track jacket contrasts sharply with clean khaki trousers for an effortless high-low mix. The fitted white tank balances the wide-leg silhouette. \n*   *Suggested addition:* A minimalist baseball cap.",
+    "fit_card": "Scored this authentic 90s track jacket for $45.0 on Poshmark! Paired with a white ribbed tank, baggy jeans, and chunky sneakers, it creates a cohesive 90s streetwear aesthetic.",
+    "error": null
+  }
+}
+```
+
+**Criterion 2 — recovered hosted health record, trial 1.** Produced by `serve.py::finish_request_record` and `run_log.py::append_record`, mirrored to Vercel by `run_log.py::mirror_record`. Source: [matched application records](results/capstone_before/trial1/matched_application_records.jsonl).
+
+```json
+{
+  "timestamp": "2026-11-15T06:16:12.752+00:00",
+  "request_id": "7160680289284d9390fe2b14c0ad0a98",
+  "method": "GET",
+  "path": "/health",
+  "input_format": "empty",
+  "input": null,
+  "output_format": "json",
+  "output": {
+    "status": "ok"
+  },
+  "status_code": 200,
+  "outcome": "success",
+  "error": null,
+  "duration_ms": 0.232,
+  "queue_ms": 0.0,
+  "agent_ms": 0.0,
+  "configured_model": "gemini-3.5-flash-lite",
+  "cache_enabled": false,
+  "model_usage": {
+    "model_attempts": 0,
+    "reported_prompt_tokens": 0,
+    "reported_output_tokens": 0,
+    "reported_total_tokens": 0
+  }
+}
+```
+
+**Criterion 3 — slowest measured client response, trial 1, request 2.** Produced by `tools/measure_capstone.py::request_once`. This is the same request as the completed response shown for criterion 1, so its generated outputs are shown there. Source: [client responses](results/capstone_before/trial1/client_requests.jsonl).
+
+```json
+{
+  "trial": 1,
+  "slot": 2,
+  "timestamp": "2026-11-15T06:14:19.840254+00:00",
+  "url": "https://fitfindr-capstone.vercel.app/ask",
+  "http_status": 200,
+  "request_id": "b460aa161a9a4a61ac92390d6685f9db",
+  "client_elapsed_ms": 21377.034,
+  "transport_error": null
+}
+```
+
+**Criterion 4 — recorded usage for the same completed request.** Produced by `serve.py::model_usage_snapshot` and `serve.py::finish_request_record`. Source: [matched application records](results/capstone_before/trial1/matched_application_records.jsonl).
+
+```json
+{
+  "timestamp": "2026-11-15T06:14:19.989+00:00",
+  "request_id": "b460aa161a9a4a61ac92390d6685f9db",
+  "status_code": 200,
+  "outcome": "success",
+  "cache_enabled": false,
+  "model_usage": {
+    "model_attempts": 2,
+    "reported_prompt_tokens": 1136,
+    "reported_output_tokens": 251,
+    "reported_total_tokens": 1387
+  }
+}
+```
+
+**Criterion 5 — isolated local logging failure, trial 1.** `tools/evaluate_capstone.py::fault_trial` configured a log path whose parent was a regular file. `serve.py::finish_request_record` retained HTTP 200, set the failure header and emitted the matching stderr error. Sources: [client responses](results/capstone_before/trial1/client_requests.jsonl), [fault setup](results/capstone_before/trial1/fault_setup.json), and [stderr](results/capstone_before/trial1/fault_stderr.txt).
+
+```json
+{
+  "trial": 1,
+  "slot": 1,
+  "method": "GET",
+  "url": "http://127.0.0.1:57069/health",
+  "http_status": 200,
+  "request_id": "6089d619feb94d2abef3c1400ef4c19b",
+  "run_log": "failed",
+  "response": {
+    "status": "ok"
+  },
+  "transport_error": null
+}
+```
+
+Matching original stderr line:
+
+```text
+[2026-11-14 22:13:20,224] ERROR in serve: Could not save request 6089d619feb94d2abef3c1400ef4c19b: [Errno 17] File exists: '/var/folders/9g/v18s588943g4v58_2hbz9vyc0000gn/T/fitfindr-log-fault-uzbchkhd/regular_file_not_directory'
+```
+
+The [machine-readable summary](results/capstone_before/summary.json) and [generated report](results/capstone_before/report.md) retain the complete counts and assessments. The original Milestone 3 ten-run cost measurement remains separate from this formal baseline.
+
 ---
 
 📖 **How to run this project: [RUNNING.md](RUNNING.md)**

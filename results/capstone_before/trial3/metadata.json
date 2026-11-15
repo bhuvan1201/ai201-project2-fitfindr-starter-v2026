@@ -1,0 +1,16 @@
+{
+  "purpose": "Formal capstone trial",
+  "trial": 3,
+  "collector_checkout_revision": "8bbd9ebcb36ca8ad5fb985997d1b8aa61e49efd3",
+  "criteria_sha256": "ac94e16673d1348f2c81c492d79ed43efeb84cfc9a6b1601bd46c6a55738fc8d",
+  "started_at": "2026-11-15T06:18:54.859393+00:00",
+  "finished": true,
+  "query": "90s track jacket in size M",
+  "order": [
+    "local_logging_failure",
+    "hosted_warmup",
+    "hosted_ask",
+    "hosted_health"
+  ],
+  "finished_at": "2026-11-15T06:20:11.594864+00:00"
+}

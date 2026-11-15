@@ -1,0 +1,25 @@
+[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:57237
+ * Running on http://10.0.0.129:57237
+[33mPress CTRL+C to quit[0m
+[2026-11-14 22:17:43,779] ERROR in serve: Could not save request 3e8bf0bd8f79432ea16025f9e4e63f70: [Errno 17] File exists: '/var/folders/9g/v18s588943g4v58_2hbz9vyc0000gn/T/fitfindr-log-fault-txsyk_g6/regular_file_not_directory'
+127.0.0.1 - - [14/Nov/2026 22:17:43] "GET /health HTTP/1.1" 200 -
+[2026-11-14 22:17:43,781] ERROR in serve: Could not save request 214ee69992404226b3fe9719fea8b595: [Errno 17] File exists: '/var/folders/9g/v18s588943g4v58_2hbz9vyc0000gn/T/fitfindr-log-fault-txsyk_g6/regular_file_not_directory'
+127.0.0.1 - - [14/Nov/2026 22:17:43] "GET /health HTTP/1.1" 200 -
+[2026-11-14 22:17:43,782] ERROR in serve: Could not save request db7b1163b4934a48a9251d03bdcc0e31: [Errno 17] File exists: '/var/folders/9g/v18s588943g4v58_2hbz9vyc0000gn/T/fitfindr-log-fault-txsyk_g6/regular_file_not_directory'
+127.0.0.1 - - [14/Nov/2026 22:17:43] "GET /health HTTP/1.1" 200 -
+[2026-11-14 22:17:43,783] ERROR in serve: Could not save request 06d0fac623d448a6ae4fadd6cb968a93: [Errno 17] File exists: '/var/folders/9g/v18s588943g4v58_2hbz9vyc0000gn/T/fitfindr-log-fault-txsyk_g6/regular_file_not_directory'
+127.0.0.1 - - [14/Nov/2026 22:17:43] "GET /health HTTP/1.1" 200 -
+[2026-11-14 22:17:43,784] ERROR in serve: Could not save request 0c13d2919baf4394afb31e6ce2e995ea: [Errno 17] File exists: '/var/folders/9g/v18s588943g4v58_2hbz9vyc0000gn/T/fitfindr-log-fault-txsyk_g6/regular_file_not_directory'
+127.0.0.1 - - [14/Nov/2026 22:17:43] "GET /health HTTP/1.1" 200 -
+[2026-11-14 22:17:43,785] ERROR in serve: Could not save request 7645e7e80b634a02b87debe727a13c5a: [Errno 17] File exists: '/var/folders/9g/v18s588943g4v58_2hbz9vyc0000gn/T/fitfindr-log-fault-txsyk_g6/regular_file_not_directory'
+127.0.0.1 - - [14/Nov/2026 22:17:43] "GET /health HTTP/1.1" 200 -
+[2026-11-14 22:17:43,786] ERROR in serve: Could not save request c1cd8ff6bf23440da19e9e2b5141a6a7: [Errno 17] File exists: '/var/folders/9g/v18s588943g4v58_2hbz9vyc0000gn/T/fitfindr-log-fault-txsyk_g6/regular_file_not_directory'
+127.0.0.1 - - [14/Nov/2026 22:17:43] "GET /health HTTP/1.1" 200 -
+[2026-11-14 22:17:43,787] ERROR in serve: Could not save request 6dd2aab83adf40a4a0ef795b0e52bc52: [Errno 17] File exists: '/var/folders/9g/v18s588943g4v58_2hbz9vyc0000gn/T/fitfindr-log-fault-txsyk_g6/regular_file_not_directory'
+127.0.0.1 - - [14/Nov/2026 22:17:43] "GET /health HTTP/1.1" 200 -
+[2026-11-14 22:17:43,788] ERROR in serve: Could not save request c9f44ea8d8d94625bba55c3d86c7c0f8: [Errno 17] File exists: '/var/folders/9g/v18s588943g4v58_2hbz9vyc0000gn/T/fitfindr-log-fault-txsyk_g6/regular_file_not_directory'
+127.0.0.1 - - [14/Nov/2026 22:17:43] "GET /health HTTP/1.1" 200 -
+[2026-11-14 22:17:43,789] ERROR in serve: Could not save request 26bf16debcb34cb1adf6fce4e80ca7dd: [Errno 17] File exists: '/var/folders/9g/v18s588943g4v58_2hbz9vyc0000gn/T/fitfindr-log-fault-txsyk_g6/regular_file_not_directory'
+127.0.0.1 - - [14/Nov/2026 22:17:43] "GET /health HTTP/1.1" 200 -
