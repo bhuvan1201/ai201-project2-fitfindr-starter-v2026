@@ -33,10 +33,10 @@ def revision():
         return None
 
 
-def request_once(url, payload, timeout, context):
+def request_once(url, payload, timeout, context, *, method="POST"):
     started = dt.datetime.now(dt.timezone.utc).isoformat()
-    request = urllib.request.Request(url, data=json.dumps(payload).encode(),
-                                     headers={'Content-Type': 'application/json'})
+    request = urllib.request.Request(url, data=None if payload is None else json.dumps(payload).encode(),
+                                     headers={'Content-Type': 'application/json'}, method=method)
     tick = time.perf_counter()
     status, headers, output, error = None, {}, None, None
     try:
@@ -55,7 +55,7 @@ def request_once(url, payload, timeout, context):
                 output = {'raw': text}
     except (OSError, urllib.error.URLError) as exc:
         error = f'{type(exc).__name__}: {exc}'
-    return {'timestamp': started, 'url': url, 'input': payload,
+    return {'timestamp': started, 'method': method, 'url': url, 'input': payload,
             'http_status': status, 'response': output,
             'client_elapsed_ms': round((time.perf_counter() - tick) * 1000, 3),
             'request_id': headers.get('request_id'), 'run_log': headers.get('run_log'),
