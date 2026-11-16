@@ -633,6 +633,10 @@ Usage records with model attempts but zero reported tokens: 0.
 
 Client responses, original runtime export, matched application records and the numeric summary are saved under `results/capstone_m3`.
 
+**For 100 people a day:** Assuming each person makes one matching request, with usage like this ten-run sample, the daily total would be `100 × 1400.4 = 140,040` reported tokens and `100 × 2 = 200` model attempts. The measured token average comes from `14,004 ÷ 10 = 1400.4` tokens per request. More requests per person would multiply those totals again; these are usage projections, not an API bill.
+
+At the same measured averages, 100 sequential requests would add up to `100 × 2.90604 = 290.604` seconds of client waiting and `100 × 2.67592 = 267.592` seconds of server wall time. These totals exclude pauses between requests and the separate log-export step. They do not measure CPU use or show that the service can handle 100 simultaneous users. The cost sample uses one query, so different queries, output lengths and retries could change it. [Ten-run measurement](results/capstone_m3/summary.json).
+
 <!-- capstone-formal-baseline -->
 
 ### Run Log — Before
@@ -974,6 +978,38 @@ The after evidence uses fresh requests and output rather than the saved baseline
 [2026-11-15 12:41:00,438] ERROR in serve: Could not save request 54791f214f2647ea8a92f6ab48e895a8: [Errno 17] File exists: '/var/folders/9g/v18s588943g4v58_2hbz9vyc0000gn/T/fitfindr-log-fault-y7wc1iuw/regular_file_not_directory'
 ```
 
+
+<!-- capstone-milestone7 -->
+
+### What's Still Broken
+
+All five capstone criteria were MET in all three before and after trials. I would still tighten criterion 3 from at least 4 of 5 responses within 45 seconds to at least 4 of 5 within 10 seconds in a future test. The first before trial took 17.623–21.377 seconds per measured request, so the current target accepts a wait I would want to reduce. The recorded 45-second criterion and its verdict stay unchanged.
+
+Log capture still depends on exporting records while they are available. Vercel's temporary file is not a shared, permanent history, and the export command stops after six attempts. The improvement recovered 30/30 required records automatically in the after trials, but that does not guarantee recovery after a longer delay or an outage. I would address this with durable storage for the structured records. I stopped after the one measured exporter change so the comparison remained about that change.
+
+The tests also used one matching query and sequential requests. They check completion, timing and reported usage, rather than whether every outfit is useful or every token counter matches billing. The logging-failure test used a controlled local instance; it does not demonstrate how a hosted platform timeout behaves. Broader query, load and failure coverage remains outside this capstone's tested scope.
+
+### What I'd Do Next
+
+If I had another unit, I would first send each structured request record to durable shared storage and test that it can be recovered after restarting the service. I would do that before adding another FitFindr feature because recovering evidence is still dependent on a timely export, and without that record I cannot reliably investigate a later failure.
+
+### How I Used AI
+
+**Moment 1 — Adding the hosted run path and measurements**
+
+- *What I asked for:* Help wrapping the existing FitFindr agent with structured request logging, preparing the Vercel setup and measuring usage without changing the search or generation behavior.
+- *What came back:* AI helped implement the request records and usage capture, prepare the deployment and measurement commands. It also helped investigate the missing dependencies in the hosted MCP subprocess.
+- *What I did with it:* I chose Vercel, ran the hosted measurement commands and shared the actual terminal output. The write-up uses the ten recorded requests and their reported usage. It keeps model tokens separate from billing and wall time separate from CPU time.
+
+**Moment 2 — Checking incomplete log exports**
+
+- *What I asked for:* Help understanding why successful HTTP requests were missing from the immediate log export, and how to improve capture without repeating model requests.
+- *What came back:* AI compared request IDs with the recovered records, helped implement bounded retries and completeness checks in the exporter.
+- *What I did with it:* I ran the three after trials and log exports and provided the terminal results. The original trials and criteria were preserved. I kept the unchanged acceptance pass rate in the report and used the capture result—18/30 records at the end of the original export step versus 30/30 after verified capture—to explain what improved. The extra queries and waiting are reported too.
+
+### Submission check
+
+The capstone extends the existing FitFindr repository with Shape A and the hosted Path A. The public API and reproducible run instructions are in [RUNNING.md](RUNNING.md). The README includes ten real instrumentation records plus a rejected request, the measured cost and daily arithmetic, both three-trial result sets, all five verdicts, the diagnosis of incomplete exports and the measured improvement. The original criteria and earlier project sections are retained.
 
 
 ---
