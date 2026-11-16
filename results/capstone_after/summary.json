@@ -1,0 +1,162 @@
+{
+  "purpose": "Formal three-trial after evaluation",
+  "label": "after",
+  "log_capture": [
+    {
+      "trial": 1,
+      "required_records": 10,
+      "recovered_required_records": 10,
+      "export_attempts": 1,
+      "export_invocations": 1,
+      "complete": true
+    },
+    {
+      "trial": 2,
+      "required_records": 10,
+      "recovered_required_records": 10,
+      "export_attempts": 2,
+      "export_invocations": 1,
+      "complete": true
+    },
+    {
+      "trial": 3,
+      "required_records": 10,
+      "recovered_required_records": 10,
+      "export_attempts": 2,
+      "export_invocations": 1,
+      "complete": true
+    }
+  ],
+  "verdicts": {
+    "1": "MET",
+    "2": "MET",
+    "3": "MET",
+    "4": "MET",
+    "5": "MET"
+  },
+  "trials": [
+    {
+      "trial": 1,
+      "scores": {
+        "1": {
+          "criterion": "Hosted completion",
+          "passed": 5,
+          "total": 5,
+          "required": 4,
+          "verdict": "MET"
+        },
+        "2": {
+          "criterion": "Recoverable health logs",
+          "passed": 5,
+          "total": 5,
+          "required": 5,
+          "verdict": "MET"
+        },
+        "3": {
+          "criterion": "Response within 45 seconds",
+          "passed": 5,
+          "total": 5,
+          "required": 4,
+          "verdict": "MET"
+        },
+        "4": {
+          "criterion": "Completed output and reported usage",
+          "passed": 5,
+          "total": 5,
+          "required": 5,
+          "verdict": "MET"
+        },
+        "5": {
+          "criterion": "Visible logging failure",
+          "passed": 10,
+          "total": 10,
+          "required": 10,
+          "verdict": "MET"
+        }
+      },
+      "missing_hosted_records": []
+    },
+    {
+      "trial": 2,
+      "scores": {
+        "1": {
+          "criterion": "Hosted completion",
+          "passed": 5,
+          "total": 5,
+          "required": 4,
+          "verdict": "MET"
+        },
+        "2": {
+          "criterion": "Recoverable health logs",
+          "passed": 5,
+          "total": 5,
+          "required": 5,
+          "verdict": "MET"
+        },
+        "3": {
+          "criterion": "Response within 45 seconds",
+          "passed": 5,
+          "total": 5,
+          "required": 4,
+          "verdict": "MET"
+        },
+        "4": {
+          "criterion": "Completed output and reported usage",
+          "passed": 5,
+          "total": 5,
+          "required": 5,
+          "verdict": "MET"
+        },
+        "5": {
+          "criterion": "Visible logging failure",
+          "passed": 10,
+          "total": 10,
+          "required": 10,
+          "verdict": "MET"
+        }
+      },
+      "missing_hosted_records": []
+    },
+    {
+      "trial": 3,
+      "scores": {
+        "1": {
+          "criterion": "Hosted completion",
+          "passed": 5,
+          "total": 5,
+          "required": 4,
+          "verdict": "MET"
+        },
+        "2": {
+          "criterion": "Recoverable health logs",
+          "passed": 5,
+          "total": 5,
+          "required": 5,
+          "verdict": "MET"
+        },
+        "3": {
+          "criterion": "Response within 45 seconds",
+          "passed": 5,
+          "total": 5,
+          "required": 4,
+          "verdict": "MET"
+        },
+        "4": {
+          "criterion": "Completed output and reported usage",
+          "passed": 5,
+          "total": 5,
+          "required": 5,
+          "verdict": "MET"
+        },
+        "5": {
+          "criterion": "Visible logging failure",
+          "passed": 10,
+          "total": 10,
+          "required": 10,
+          "verdict": "MET"
+        }
+      },
+      "missing_hosted_records": []
+    }
+  ]
+}

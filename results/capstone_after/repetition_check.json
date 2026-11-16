@@ -1,0 +1,8 @@
+{
+  "scope": "Fifteen measured after requests; warm-ups excluded",
+  "unique_request_ids": 15,
+  "distinct_generated_output_pairs": 15,
+  "all_cache_disabled": true,
+  "reported_model_attempts": 30,
+  "all_reported_tokens_positive": true
+}

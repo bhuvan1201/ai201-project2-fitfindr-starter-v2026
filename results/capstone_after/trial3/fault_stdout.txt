@@ -1,0 +1,14 @@
+
+FitFindr is listening on http://localhost:53015
+It runs one request at a time — a second one waits for the first.
+Ask it something (single quotes, as always):
+
+  curl -X POST http://localhost:53015/ask \
+    -H 'Content-Type: application/json' \
+    -d '{"query": "vintage graphic tee under $30"}'
+
+Request log: /var/folders/9g/v18s588943g4v58_2hbz9vyc0000gn/T/fitfindr-log-fault-i4ia66h8/regular_file_not_directory/runs.jsonl
+Ctrl-C to stop.
+
+ * Serving Flask app 'serve'
+ * Debug mode: off

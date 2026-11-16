@@ -1,0 +1,114 @@
+{
+  "policy": {
+    "name": "verified-export-v1",
+    "max_attempts_per_invocation": 6,
+    "retry_delay_seconds": 5,
+    "query_window": "30m",
+    "cli_version": "65.16.0",
+    "project": "fitfindr-capstone",
+    "scope": "bhuvan-gowda",
+    "required_kinds": [
+      "ask",
+      "health"
+    ]
+  },
+  "trial": 2,
+  "attempts": [
+    {
+      "attempt": 1,
+      "invocation": 1,
+      "started_at": "2026-11-16T00:40:53.253051+00:00",
+      "command": [
+        "npx",
+        "--yes",
+        "vercel@65.16.0",
+        "logs",
+        "--project",
+        "fitfindr-capstone",
+        "--scope",
+        "bhuvan-gowda",
+        "--environment",
+        "production",
+        "--since",
+        "30m",
+        "--limit",
+        "1000",
+        "--json"
+      ],
+      "runtime_export": "trial2/export_attempts/attempt001_runtime.jsonl",
+      "stderr_file": "trial2/export_attempts/attempt001_stderr.txt",
+      "returncode": 0,
+      "snapshot_required_records": 4,
+      "elapsed_seconds": 5.437,
+      "cumulative_required_records": 4,
+      "missing_records": [
+        {
+          "kind": "ask",
+          "slot": 5,
+          "request_id": "fdd0887a5897402eae81c6753a199e51"
+        },
+        {
+          "kind": "health",
+          "slot": 1,
+          "request_id": "86e6ab9154634a8c90b847d3385f6afc"
+        },
+        {
+          "kind": "health",
+          "slot": 2,
+          "request_id": "dcc0c12b3d46416884b012fcb23f1451"
+        },
+        {
+          "kind": "health",
+          "slot": 3,
+          "request_id": "a3c8d6d7f3f446798db8a00b6c24977c"
+        },
+        {
+          "kind": "health",
+          "slot": 4,
+          "request_id": "a2706ac9eb7243928a812188b9d510c5"
+        },
+        {
+          "kind": "health",
+          "slot": 5,
+          "request_id": "33992fd69ded46198cb29224a2401dee"
+        }
+      ]
+    },
+    {
+      "attempt": 2,
+      "invocation": 1,
+      "started_at": "2026-11-16T00:41:03.696842+00:00",
+      "command": [
+        "npx",
+        "--yes",
+        "vercel@65.16.0",
+        "logs",
+        "--project",
+        "fitfindr-capstone",
+        "--scope",
+        "bhuvan-gowda",
+        "--environment",
+        "production",
+        "--since",
+        "30m",
+        "--limit",
+        "1000",
+        "--json"
+      ],
+      "runtime_export": "trial2/export_attempts/attempt002_runtime.jsonl",
+      "stderr_file": "trial2/export_attempts/attempt002_stderr.txt",
+      "returncode": 0,
+      "snapshot_required_records": 10,
+      "elapsed_seconds": 4.111,
+      "cumulative_required_records": 10,
+      "missing_records": []
+    }
+  ],
+  "export_invocations": 1,
+  "required_records": 10,
+  "model_requests_repeated": 0,
+  "recovered_required_records": 10,
+  "complete": true,
+  "missing_records": [],
+  "latest_invocation_elapsed_seconds": 14.555
+}

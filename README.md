@@ -802,15 +802,178 @@ The stage was the export and verification step. Its mechanism was a one-shot fet
 
 ### The Improvement — verified log capture
 
-I am changing one part of the operational layer: the log-export step. `tools/evaluate_capstone.py export-logs` now compares recovered records with the ten required request IDs for that trial: five measured outfit requests and five health requests. It checks their inputs, outputs and HTTP statuses too. Warm-up records are retained when available but excluded from that ten-record target.
+I changed one part of the operational layer: the log-export step. `tools/evaluate_capstone.py export-logs` now compares recovered records with the ten required request IDs for that trial: five measured outfit requests and five health requests. It checks their inputs, outputs and HTTP statuses too. Warm-up records are retained when available but excluded from that ten-record target.
 
 If records are missing, the command fetches existing logs again, up to six attempts with five seconds between attempts. It never repeats an outfit request. Each raw export, CLI stderr and attempt count is saved, and the command only reports completion after the matching records are written to the evidence file. If it reaches the limit, it returns an error and preserves the partial capture.
 
-I expect this to reduce the manual recovery needed after an immediate export. I will compare record coverage when the configured capture step finishes: the before workflow captured 18/30 required records at that point; the after result has not been measured yet. I will also report the number of export attempts and any manual reinvocation. This additional capture measure does not replace or change the five acceptance criteria.
+The intended benefit was to reduce manual recovery after an immediate export. I compared record coverage when the configured capture step finished, plus export attempts and manual reinvocation. This additional capture measure does not replace or change the five acceptance criteria; the actual results are below.
 
 The tradeoff is extra log queries and waiting when records are not available immediately. This happens after the application requests, outside their measured response times. This change is not expected to make outfit generation faster, and a faster after-run would not by itself prove that the exporter caused it.
 
-**After testing is pending.** I will rerun all five criteria three times with the same query, targets, request counts, cache setting and local failure procedure. New evidence will go into `results/capstone_after/`; the committed before evidence stays unchanged. The after table and conclusion about whether this helped will be added only after those real runs.
+### Run Log — After
+
+I reran the full set three times with the original criteria, query, request counts and cache settings. The application, data and shared request helper hashes match the before plan; only the evaluation/export tool changed. Criteria 1–4 ran against the public API. Criterion 5 again used a separate local instance with an invalid log destination.
+
+Trial 1 was kept when a local Git preflight timed out before trial 2 started. Downloading the offloaded iCloud files restored the check, and every frozen source hash still matched. I resumed trials 2 and 3 without repeating trial 1 or changing the application. That setup delay is outside the timed HTTP requests.
+
+| Criterion | Target | Run 1 | Run 2 | Run 3 | Verdict |
+|---|---|---|---|---|---|
+| 1. Hosted completion | 4 of 5 | 5/5 | 5/5 | 5/5 | MET |
+| 2. Recoverable health logs | 5 of 5 | 5/5 | 5/5 | 5/5 | MET |
+| 3. Response within 45 seconds | 4 of 5 | 5/5 | 5/5 | 5/5 | MET |
+| 4. Completed output and reported usage | 5 of 5 | 5/5 | 5/5 | 5/5 | MET |
+| 5. Visible logging failure | 10 of 10 | 10/10 | 10/10 | 10/10 | MET |
+
+All five criteria remained MET. The [side-by-side result artifact](results/capstone_after/comparison.md) contains both complete sets of trial counts. The [after summary](results/capstone_after/summary.json) and per-trial assessment files retain the individual observations.
+
+### Before/after comparison
+
+| Measure | Before | After |
+|---|---|---|
+| Criteria meeting their targets in all three trials | 5/5 | 5/5 |
+| Required records visible in the first fetch | 18/30 | 18/30 |
+| Required records captured when the configured capture command finished | 18/30 | 30/30 |
+| Trials needing manual log recovery after export | 2/3 | 0/3 |
+
+The before criterion scores already include the manual recovery, so this is not an increase in the acceptance pass rate. The improvement removed that manual step in these after runs. The five acceptance targets were not changed.
+
+| After trial | First fetch | Verified capture | CLI queries | Capture elapsed time |
+|---|---|---|---|---|
+| 1 | 10/10 | 10/10 | 1 | 13.639s |
+| 2 | 4/10 | 10/10 | 2 | 14.555s |
+| 3 | 4/10 | 10/10 | 2 | 11.402s |
+
+Trials 2 and 3 reproduced the same missing-record pattern: their first fetch had 4/10 required records. The second fetch found all ten, and each trial completed in one export-command invocation. The exporter repeated zero application requests. Raw snapshots, stderr and each attempt's coverage are saved in the trial folders and `log_export_audit.json` files.
+
+**Did it help?** Yes, for the observed capture problem. The configured step now checks completeness and obtained 30/30 required records without manual recovery. It used five CLI queries across three trials, including two automatic retries, with five seconds of retry waiting in each of trials 2 and 3. This extra work happens after the application responses, outside the latency criterion. The measured capture-command times are shown above; the before CLI command duration was not measured, so I am not claiming an export-speed improvement.
+
+The generation code was unchanged. These runs do not establish that the export change caused faster generation; export waiting was outside the timed requests. The retry limit, log-retention window and service outages can still prevent capture; three successful after trials do not establish that every future export will succeed.
+
+The after evidence uses fresh requests and output rather than the saved baseline. See [the repetition check](results/capstone_after/repetition_check.json) and [the measured comparison](results/capstone_after/comparison.json). The excerpts below select unchanged fields from the actual after responses and records. Full data remains in `results/capstone_after/`.
+
+**Criterion 1 — actual after response, trial 3, request 3.** Produced by `agent.py::run_agent` and `serve.py::ask`, captured by `tools/measure_capstone.py::request_once`. [Source client responses](results/capstone_after/trial3/client_requests.jsonl).
+
+```json
+{
+  "trial": 3,
+  "slot": 3,
+  "http_status": 200,
+  "request_id": "107e765542224d8383472b5831ed64d8",
+  "response": {
+    "selected_item": {
+      "brand": "Champion",
+      "category": "outerwear",
+      "colors": [
+        "navy",
+        "white"
+      ],
+      "condition": "excellent",
+      "description": "Authentic 90s track jacket with stripe detail down the sleeves. Full zip. Lightweight — great for layering.",
+      "id": "lst_004",
+      "platform": "poshmark",
+      "price": 45.0,
+      "size": "M",
+      "style_tags": [
+        "90s",
+        "vintage",
+        "athletic",
+        "streetwear"
+      ],
+      "title": "90s Track Jacket — Navy/White Stripe"
+    },
+    "outfit_suggestion": "**Outfit 1: Casual Streetwear**\n*   **Top:** White ribbed tank top\n*   **Bottoms:** Baggy straight-leg jeans, dark wash\n*   **Shoes:** Chunky white sneakers\n*   **Why it works:** The white tank pairs with the white stripe on the track jacket, while the baggy jeans and chunky sneakers lean into the jacket's 90s athletic aesthetic. *(Optional addition: Silver hoop earrings to complete the retro look.)*\n\n**Outfit 2: High-Low Contrast**\n*   **Bottoms:** Wide-leg khaki trousers\n*   **Shoes:** Chunky white sneakers\n*   **Why it works:** Pairing the sporty navy track jacket with tailored khaki trousers creates a stylish contrast between athletic and minimal streetwear, unified by the white sneakers. *(Optional addition: A simple white t-shirt layered underneath.)*",
+    "fit_card": "Scored this authentic 90s track jacket on Poshmark for just $45.00! I styled the navy and white zip-up over a white ribbed tank with baggy dark wash jeans and chunky sneakers. It gives off a totally effortless, retro streetwear vibe.",
+    "error": null
+  }
+}
+```
+
+**Criterion 2 — actual recovered health record, after trial 1.** Produced by `serve.py::finish_request_record`, saved by `run_log.py::append_record` and recovered by `tools/evaluate_capstone.py::export_logs`. [Source application records](results/capstone_after/trial1/matched_application_records.jsonl).
+
+```json
+{
+  "timestamp": "2026-11-15T20:42:10.654+00:00",
+  "request_id": "e1e94c0a0bc144d393f37d233d07ccb4",
+  "method": "GET",
+  "path": "/health",
+  "input_format": "empty",
+  "input": null,
+  "output_format": "json",
+  "output": {
+    "status": "ok"
+  },
+  "status_code": 200,
+  "outcome": "success",
+  "error": null,
+  "duration_ms": 0.262,
+  "queue_ms": 0.0,
+  "agent_ms": 0.0,
+  "configured_model": "gemini-3.5-flash-lite",
+  "cache_enabled": false,
+  "model_usage": {
+    "model_attempts": 0,
+    "reported_prompt_tokens": 0,
+    "reported_output_tokens": 0,
+    "reported_total_tokens": 0
+  }
+}
+```
+
+**Criterion 3 — slowest measured after response.** Produced by `tools/measure_capstone.py::request_once`. Its completed generated outputs are shown for the same request ID under criterion 1 above. [Source client responses](results/capstone_after/trial3/client_requests.jsonl).
+
+```json
+{
+  "trial": 3,
+  "slot": 3,
+  "timestamp": "2026-11-16T00:42:06.979853+00:00",
+  "url": "https://fitfindr-capstone.vercel.app/ask",
+  "http_status": 200,
+  "request_id": "107e765542224d8383472b5831ed64d8",
+  "client_elapsed_ms": 4234.31,
+  "transport_error": null
+}
+```
+
+**Criterion 4 — actual usage record for that completed request.** Produced by `serve.py::model_usage_snapshot` and `serve.py::finish_request_record`. [Source application records](results/capstone_after/trial3/matched_application_records.jsonl).
+
+```json
+{
+  "timestamp": "2026-11-16T00:42:07.245+00:00",
+  "request_id": "107e765542224d8383472b5831ed64d8",
+  "status_code": 200,
+  "outcome": "success",
+  "cache_enabled": false,
+  "model_usage": {
+    "model_attempts": 2,
+    "reported_prompt_tokens": 1113,
+    "reported_output_tokens": 238,
+    "reported_total_tokens": 1351
+  }
+}
+```
+
+**Criterion 5 — actual local logging-failure response and stderr, after trial 1.** Triggered by `tools/evaluate_capstone.py::fault_trial`; the header and error come from `serve.py::finish_request_record`. [Client responses](results/capstone_after/trial1/client_requests.jsonl), [fault setup](results/capstone_after/trial1/fault_setup.json) and [stderr](results/capstone_after/trial1/fault_stderr.txt).
+
+```json
+{
+  "trial": 1,
+  "slot": 1,
+  "method": "GET",
+  "url": "http://127.0.0.1:64873/health",
+  "http_status": 200,
+  "request_id": "54791f214f2647ea8a92f6ab48e895a8",
+  "run_log": "failed",
+  "response": {
+    "status": "ok"
+  },
+  "transport_error": null
+}
+```
+
+```text
+[2026-11-15 12:41:00,438] ERROR in serve: Could not save request 54791f214f2647ea8a92f6ab48e895a8: [Errno 17] File exists: '/var/folders/9g/v18s588943g4v58_2hbz9vyc0000gn/T/fitfindr-log-fault-y7wc1iuw/regular_file_not_directory'
+```
+
 
 
 ---

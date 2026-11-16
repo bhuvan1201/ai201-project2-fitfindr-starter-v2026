@@ -1,0 +1,78 @@
+{
+  "criteria_sha256": "ac94e16673d1348f2c81c492d79ed43efeb84cfc9a6b1601bd46c6a55738fc8d",
+  "changed_frozen_files": [
+    "tools/evaluate_capstone.py"
+  ],
+  "distinct_request_ids_across_both_phases": 126,
+  "before_verdicts": {
+    "1": "MET",
+    "2": "MET",
+    "3": "MET",
+    "4": "MET",
+    "5": "MET"
+  },
+  "after_verdicts": {
+    "1": "MET",
+    "2": "MET",
+    "3": "MET",
+    "4": "MET",
+    "5": "MET"
+  },
+  "initial_capture_records_before": 18,
+  "initial_fetch_records_after": 18,
+  "capture_step_completion_records_after": 30,
+  "required_records_per_phase": 30,
+  "before_trials_needing_manual_recovery": 2,
+  "after_trials_needing_manual_recovery": 0,
+  "after_export_attempts": 5,
+  "after_capture_mean_seconds": 13.199,
+  "model_requests_repeated_by_exporter": 0,
+  "trial_metrics": [
+    {
+      "trial": 1,
+      "before_initial_records": 10,
+      "after_first_fetch_records": 10,
+      "after_first_command_records": 10,
+      "after_final_records": 10,
+      "required_records": 10,
+      "export_attempts": 1,
+      "export_invocations": 1,
+      "capture_elapsed_seconds": 13.639,
+      "model_requests_repeated_by_exporter": 0,
+      "latency_min_seconds": 2.648,
+      "latency_max_seconds": 2.855,
+      "latency_mean_seconds": 2.793
+    },
+    {
+      "trial": 2,
+      "before_initial_records": 4,
+      "after_first_fetch_records": 4,
+      "after_first_command_records": 10,
+      "after_final_records": 10,
+      "required_records": 10,
+      "export_attempts": 2,
+      "export_invocations": 1,
+      "capture_elapsed_seconds": 14.555,
+      "model_requests_repeated_by_exporter": 0,
+      "latency_min_seconds": 2.679,
+      "latency_max_seconds": 3.961,
+      "latency_mean_seconds": 3.013
+    },
+    {
+      "trial": 3,
+      "before_initial_records": 4,
+      "after_first_fetch_records": 4,
+      "after_first_command_records": 10,
+      "after_final_records": 10,
+      "required_records": 10,
+      "export_attempts": 2,
+      "export_invocations": 1,
+      "capture_elapsed_seconds": 11.402,
+      "model_requests_repeated_by_exporter": 0,
+      "latency_min_seconds": 2.151,
+      "latency_max_seconds": 4.234,
+      "latency_mean_seconds": 3.105
+    }
+  ],
+  "interpretation": "Acceptance verdicts are unchanged. The verified capture step recovered the latest records automatically in these runs. The initial fetch had the same 18/30 coverage in both phases; retries addressed it. Before final criterion scores already included manual recovery. Capture waiting is outside application response times; no causal inference about generation speed is made."
+}
