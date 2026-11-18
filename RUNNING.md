@@ -119,7 +119,24 @@ Useful flags on `ask`:
 
 ## Capstone — Vercel (Shape A, Path A)
 
-**Public API:** https://fitfindr-capstone.vercel.app. Verified without Vercel authentication: `/health` returns 200; MCP empty search returns guidance; missing query returns 400. Request records were recovered from runtime logs. Clean local-checkout verification passed at `994e563` using a new Python 3.13 environment; its record is in `results/capstone_clean_checkout_check.json`. The ten-run hosted measurement is now recorded in `results/capstone_m3/summary.json`: 10/10 completed outfits, 11 recovered records including the rejected-input example, and 20 model attempts. Formal before and after evaluations have now run three trials per criterion; see `results/capstone_before/summary.json`, `results/capstone_after/summary.json` and the Capstone comparison in the README. Push the new capstone commits before following the GitHub clone command below; they were not yet on the remote when checked.
+**Public API:** https://fitfindr-capstone.vercel.app. Verified without Vercel authentication: `/health` returns 200; MCP empty search returns guidance; missing query returns 400. Request records were recovered from runtime logs. Clean local-checkout verification passed at `994e563` using a new Python 3.13 environment; its record is in `results/capstone_clean_checkout_check.json`. The ten-run hosted measurement is now recorded in `results/capstone_m3/summary.json`: 10/10 completed outfits, 11 recovered records including the rejected-input example, and 20 model attempts. Formal before and after evaluations have now run three trials per criterion; see `results/capstone_before/summary.json`, `results/capstone_after/summary.json` and the Capstone comparison in the README. The capstone code, before/after evidence and final write-up were pushed to `main` through `6a485c8`.
+
+### Demo Day and peer testing
+
+The hosted API can be tried without installing Python or providing an API key. Start with:
+
+```bash
+curl -i https://fitfindr-capstone.vercel.app/health
+curl -i https://fitfindr-capstone.vercel.app/ask \
+  -H 'Content-Type: application/json' \
+  -d '{"query":"90s track jacket in size M"}'
+```
+
+The health check should return HTTP 200 with `{"status":"ok"}`. A successful matching request returns the session with `selected_item`, `outfit_suggestion` and `fit_card`. Its generated wording can vary. Check `X-Request-ID` and `X-Run-Log` in the response headers. The matching request consumes the owner's hosted API quota. The site is an API, so the root URL has no webpage.
+
+For an unexpected input, send `{}` to `/ask`; it should return HTTP 400 asking for a query. For an empty search, use `{"query":"designer ballgown size XXS under $5"}`; the session should explain what to change and leave `fit_card` null.
+
+To run your own copy, follow the Python 3.13 setup below and put your own key in `.env` as `GEMINI_API_KEY=YOUR_API_KEY`. Use the Gemini key from the course environment setup. Do not copy someone else's key or share `.env`. The earlier clean-checkout check is recorded at `994e563`; new Demo Day attempts are separate checks, not additional acceptance trials.
 
 ### Environment and installation
 
